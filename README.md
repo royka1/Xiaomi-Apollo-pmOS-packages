@@ -56,35 +56,41 @@ apollo-pin-packages status    # show pins
 apollo-pin-packages unpin     # before installing a newer local build
 ```
 
-## Building
+## Building an image
 
-These are aports. pmbootstrap takes a single aports tree, so symlink them into
-your pmaports checkout:
+The easiest route is the pmaports fork, which already contains these packages
+plus the device package and the kernel aport:
 
 ```sh
-git clone https://github.com/royka1/Xiaomi-Apollo-pmOS-packages
+git clone -b apollo https://gitlab.postmarketos.org/royka1/pmaports.git
+pmbootstrap -p $PWD/pmaports init      # pick xiaomi / apollo
+pmbootstrap -p $PWD/pmaports install
+pmbootstrap -p $PWD/pmaports flasher flash_kernel
+```
+
+To use these aports standalone instead, symlink them into any pmaports
+checkout (pmbootstrap takes a single aports tree):
+
+```sh
 cd <your-pmaports>/device/testing
-for p in ../../../Xiaomi-Apollo-pmOS-packages/*/; do
+for p in <this-repo>/*/; do
     [ -f "$p/APKBUILD" ] && ln -sfn "$(realpath "$p")" .
 done
 ```
 
-Then `pmbootstrap build firmware-xiaomi-apollo` etc., or just let
-`pmbootstrap install` pull them in as dependencies of `device-xiaomi-apollo`.
+## ModemManager
 
-## Still manual: ModemManager
-
-`modemmanager-patches/` holds two patches that are needed for **mobile data**
-(they are not required for calls, SMS or registration):
+Two patches are needed for **mobile data** (not for calls, SMS or
+registration):
 
 * `0001-qcom-soc-mhi-net.patch` — let the `qcom-soc` plugin use `mhi_net`
   interfaces as data ports
 * `0002-bearer-bind-pcie.patch` — bind the WDS bearer to the PCIe endpoint
 
-These are not packaged yet: doing it properly means carrying a full
-ModemManager aport, which is a lot of surface to maintain against Alpine's.
-Until then, apply them to a ModemManager build by hand. Without them the modem
-registers on LTE/5G and SMS works, but no data bearer comes up.
+They are kept here for reference, but you do **not** have to apply them by
+hand: the pmaports fork carries a `temp/modemmanager` aport that builds Alpine's
+ModemManager with both applied, at a bumped `pkgrel` so it outranks the
+repository build. Drop that aport once the patches land upstream.
 
 ## Status
 
