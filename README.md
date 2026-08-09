@@ -62,7 +62,10 @@ pmbootstrap manages its own pmaports checkout, so the way to use this port is to
 point it at the fork rather than cloning pmaports by hand:
 
 ```sh
-# 1. Install pmbootstrap the normal way, then set it up once
+# 1. Install pmbootstrap the normal way:
+https://wiki.postmarketos.org/wiki/Pmbootstrap/Installation
+
+then set it up once
 pmbootstrap init
 
 # 2. Clone the fork (its main branch carries the apollo port) and point
