@@ -81,7 +81,17 @@ pmbootstrap init
 pmbootstrap install
 pmbootstrap flasher flash_kernel
 pmbootstrap flasher flash_rootfs
+
+# 5. Erase the Android device-tree overlay, once, before the first boot
+fastboot erase dtbo
 ```
+
+That last step is not optional. This device keeps an Android device-tree
+overlay in its own `dtbo` partition and the bootloader applies it on top of
+whatever device tree the kernel carries. postmarketOS appends its DTB to the
+kernel (`deviceinfo_append_dtb="true"`), so a leftover Android overlay is
+merged over the mainline device tree and corrupts it. pmbootstrap can flash a
+dtbo image but never erases one, so you have to do it by hand.
 
 The fork's `main` is upstream pmaports plus this port, so it still maps to the
 `edge` channel and everything else behaves normally. To go back to stock:
