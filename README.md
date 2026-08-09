@@ -58,18 +58,39 @@ apollo-pin-packages unpin     # before installing a newer local build
 
 ## Building an image
 
-The easiest route is the pmaports fork, which already contains these packages
-plus the device package and the kernel aport:
+pmbootstrap manages its own pmaports checkout, so the way to use this port is to
+point it at the fork rather than cloning pmaports by hand:
 
 ```sh
-git clone -b apollo https://gitlab.postmarketos.org/royka1/pmaports.git
-pmbootstrap -p $PWD/pmaports init      # pick xiaomi / apollo
-pmbootstrap -p $PWD/pmaports install
-pmbootstrap -p $PWD/pmaports flasher flash_kernel
+# 1. Install pmbootstrap the normal way, then set it up once
+pmbootstrap init
+
+# 2. Clone the fork (its main branch carries the apollo port) and point
+#    pmbootstrap at it
+git clone https://gitlab.postmarketos.org/royka1/pmaports.git ~/pmaports-apollo
+pmbootstrap config aports ~/pmaports-apollo
+
+# 3. Re-run init so the device list comes from the fork, and pick
+#    Vendor: xiaomi   Device: apollo
+pmbootstrap init
+
+# 4. Build and flash
+pmbootstrap install
+pmbootstrap flasher flash_kernel
+pmbootstrap flasher flash_rootfs
 ```
 
-To use these aports standalone instead, symlink them into any pmaports
-checkout (pmbootstrap takes a single aports tree):
+The fork's `main` is upstream pmaports plus this port, so it still maps to the
+`edge` channel and everything else behaves normally. To go back to stock:
+
+```sh
+pmbootstrap config aports ~/.local/var/pmbootstrap/cache_git/pmaports
+```
+
+The five packages here are already inside that fork, so you do not need this
+repository to build an image — it exists so the packages can be used on their
+own, and so the firmware blobs have a home. To use them against some other
+pmaports checkout, symlink them in (pmbootstrap takes a single aports tree):
 
 ```sh
 cd <your-pmaports>/device/testing
