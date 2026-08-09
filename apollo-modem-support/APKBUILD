@@ -15,7 +15,7 @@ source="
 	apollo-uim-provision
 	apollo-uim-provision.service
 	apollo-pin-packages
-	10-fastrpc.rules
+	90-apollo-modem-support.preset
 	77-mm-ignore-sdx55-efs.rules
 	77-mm-sdx55-fusion.rules
 	81-libssc-xiaomi-apollo.rules
@@ -27,6 +27,12 @@ package() {
 	install -Dm755 "$srcdir"/apollo-efs-extract "$pkgdir"/usr/bin/apollo-efs-extract
 	install -Dm644 "$srcdir"/apollo-efs-extract.service \
 		"$pkgdir"/usr/lib/systemd/system/apollo-efs-extract.service
+
+	# Enable via a systemd preset. Hand-rolled symlinks into
+	# multi-user.target.wants/ fail silently at install time because the
+	# directory does not exist yet.
+	install -Dm644 "$srcdir"/90-apollo-modem-support.preset \
+		"$pkgdir"/usr/lib/systemd/system-preset/90-apollo-modem-support.preset
 
 	# Select the USIM application. msm-modem-uim-selection cannot do this:
 	# it probes /dev/modem, /dev/wwan0qmi0 (CID allocation times out there)
@@ -50,9 +56,8 @@ package() {
 	install -Dm644 "$srcdir"/77-mm-sdx55-fusion.rules \
 		"$pkgdir"/usr/lib/udev/rules.d/77-mm-sdx55-fusion.rules
 
-	# fastrpc permissions for the DSPs, and the accelerometer mount matrix
-	install -Dm644 "$srcdir"/10-fastrpc.rules \
-		"$pkgdir"/usr/lib/udev/rules.d/10-fastrpc.rules
+	# Accelerometer mount matrix. (10-fastrpc.rules is NOT shipped here --
+	# hexagonrpcd-udev already owns it.)
 	install -Dm644 "$srcdir"/81-libssc-xiaomi-apollo.rules \
 		"$pkgdir"/usr/lib/udev/rules.d/81-libssc-xiaomi-apollo.rules
 }
@@ -63,7 +68,7 @@ sha512sums="
 a22d31eacccf8241a61429a70c44fb42bd864cb7c8bbfa420948b472e6ad2a098478c9ad108e566c0d627c3d5018a68f0402635e4645b3344b9645b2a6d2deed  apollo-uim-provision
 99d99244f17c370aaedf9e081edbd997319401876af29b498f25ef07979b32001dc86b6a3c5206fabaecf2a518022cc40f8b207a593837e8dd338a4fd8dafe6e  apollo-uim-provision.service
 9d5c7ac99cb55c6723214abdec51a870c655661b5bcbe0d9db9653c2b7176e9fd0a3113aede311e48b18e9628a7051a0dfd400875275e7f84b00d1bd922be102  apollo-pin-packages
-55b1b91b2ac8fd9c69b46e2faa4a95c3f7e94738f7822fef6fdb91c0e74a0b1fae1da498bb6626bc5843afcf6620fef4ba2f079cfa532385c828d5ba4b606c04  10-fastrpc.rules
+a3e7af9ddc85865eef6605a4c2756d6d6dfb82a9a4bfcda045d72dd14c44275e218be42d2b386c08c605410af4d526386a15c9f142cd6e2dbd0bede03612a950  90-apollo-modem-support.preset
 ba8b492299eb0fd166a883f74f3935642d487e8b3778c4c0fe3dd4bc8b423d506cb4efbd702786808d94bc209122fdbee304f59d68fc7665216c0cb52995586e  77-mm-ignore-sdx55-efs.rules
 c02b119bf56635398483c980e89358d20f9bfeec9f87354a95a88ac1615e2267fc5e437e9d87ea300d3e974638cb464e16955dea5fda29d5b177e5948e32f439  77-mm-sdx55-fusion.rules
 d0e8f2e378130130ac72703aed957f7638e2dd75acf4aa421e1b4592c6cb6d296b652db0d9c242be4e56326760ce18d28c1e36ae553d0b7a7f91e12ab0353f22  81-libssc-xiaomi-apollo.rules

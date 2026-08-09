@@ -1,8 +1,5 @@
 #!/bin/sh
-for u in apollo-efs-extract.service apollo-uim-provision.service; do
-	ln -sf /usr/lib/systemd/system/$u \
-		/etc/systemd/system/multi-user.target.wants/$u 2>/dev/null || true
-done
+# Services are enabled by the systemd preset shipped with this package.
 
 cat <<'MSG'
 *

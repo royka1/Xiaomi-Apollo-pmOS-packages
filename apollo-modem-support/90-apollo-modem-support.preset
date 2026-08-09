@@ -1,0 +1,4 @@
+# The modem needs its NV extracted before anything talks to it, and the USIM
+# application selected before ModemManager probes.
+enable apollo-efs-extract.service
+enable apollo-uim-provision.service

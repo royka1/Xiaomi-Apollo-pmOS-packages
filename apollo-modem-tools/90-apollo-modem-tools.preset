@@ -1,0 +1,3 @@
+# Services the SDX55 expects from the AP; without them it never leaves SBL.
+enable pm-service-native.service
+enable mdm-helper-native.service

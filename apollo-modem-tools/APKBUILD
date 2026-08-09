@@ -6,6 +6,8 @@ pkgdesc="Userspace services the SDX55 expects on the AP (Xiaomi Mi 10T / apollo)
 url="https://github.com/royka1/Xiaomi-Apollo-pmOS-packages"
 arch="aarch64"
 license="GPL-2.0-only"
+# linux/qrtr.h
+makedepends="linux-headers"
 install="$pkgname.post-install"
 options="!check"
 source="
@@ -13,6 +15,7 @@ source="
 	mdm_helper_native.c
 	pm-service-native.service
 	mdm-helper-native.service
+	90-apollo-modem-tools.preset
 "
 
 build() {
@@ -35,6 +38,9 @@ package() {
 		"$pkgdir"/usr/lib/systemd/system/pm-service-native.service
 	install -Dm644 "$srcdir"/mdm-helper-native.service \
 		"$pkgdir"/usr/lib/systemd/system/mdm-helper-native.service
+
+	install -Dm644 "$srcdir"/90-apollo-modem-tools.preset \
+		"$pkgdir"/usr/lib/systemd/system-preset/90-apollo-modem-tools.preset
 }
 
 sha512sums="
@@ -42,4 +48,5 @@ sha512sums="
 6a849345ad147332ac4c29636e60b66b7b532266f5e34095f8b4a69d3d5d7dd870e9992824497ccff756e631811ccb12c9717246e7e3cb9f6a826596ec548b07  mdm_helper_native.c
 ed09304d08649c3a67926806f76c8cc6c19af5eaf75289cb331e90e6387900c597c4fac80c6f2b0960f38574fbc145938ab7c39cd86359b1a548063a992bc6c6  pm-service-native.service
 53267ff5cc8fbedba959f20b9d074935ab5814d1d01015c2a4c205b84c315c5af581e6ee8d7b4d06d53c6bf56cac51a261d4f49b73f2f57c0c1bc767aa1de411  mdm-helper-native.service
+83c4169bf38cd9e1d28b98f8646eb3e10448f590f7854c7503992e1e4b3bd038e0e2e150de668a446734a754424ac1ea531cd8d36603a76251a07fa358c9cd7f  90-apollo-modem-tools.preset
 "
