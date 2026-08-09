@@ -1,0 +1,16 @@
+[Unit]
+Description=Extract this device's modem NV (EFS) for the SDX55
+Documentation=https://github.com/royka1/Xiaomi-Apollo-pmOS-packages
+DefaultDependencies=no
+After=local-fs.target
+Before=tqftpserv-sdx55.service apollo-uim-provision.service
+ConditionPathExists=/dev/disk/by-partlabel/mdm1m9kefs1
+ConditionPathExists=!/lib/firmware/sdx55m/efs3.bin
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/apollo-efs-extract
+
+[Install]
+WantedBy=multi-user.target

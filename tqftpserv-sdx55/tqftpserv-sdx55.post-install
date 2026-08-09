@@ -1,0 +1,5 @@
+#!/bin/sh
+ln -sf /usr/lib/systemd/system/tqftpserv-sdx55.service \
+	/etc/systemd/system/multi-user.target.wants/tqftpserv-sdx55.service 2>/dev/null || true
+# Upstream tqftpserv publishes QRTR instance 1 and would fight this one.
+systemctl disable --now tqftpserv.service >/dev/null 2>&1 || true

@@ -1,0 +1,54 @@
+#!/bin/sh
+# Copy this device's own modem NV (EFS) out of its partitions and into
+# /lib/firmware/sdx55m/, where the MHI Sahara loader picks it up.
+#
+# These images are PER-DEVICE. They hold the IMEI, the RF calibration and the
+# subscriber state, so they can never be shipped in a package -- every owner
+# has to produce their own, which is what this script is for.
+#
+# Without them the SDX55 is fed dummy NV, boots, and then ERRFATALs about 15 s
+# into mission mode.
+set -eu
+
+DEST=/lib/firmware/sdx55m
+EXPECT_SIZE=8388608
+
+log() { echo "apollo-efs-extract: $*"; }
+
+extracted=0
+for i in 1 2 3; do
+	src="/dev/disk/by-partlabel/mdm1m9kefs$i"
+	dst="$DEST/efs$i.bin"
+
+	if [ ! -e "$src" ]; then
+		log "ERROR: $src not found -- is this really an apollo?"
+		exit 1
+	fi
+
+	# Already extracted and plausible? Leave it alone; the modem may have
+	# been updating it and we do not want to clobber newer NV with a stale
+	# partition read.
+	if [ -f "$dst" ] && [ "$(stat -c %s "$dst")" = "$EXPECT_SIZE" ]; then
+		continue
+	fi
+
+	mkdir -p "$DEST"
+	dd if="$src" of="$dst.tmp" bs=1M status=none
+	size=$(stat -c %s "$dst.tmp")
+	if [ "$size" != "$EXPECT_SIZE" ]; then
+		rm -f "$dst.tmp"
+		log "ERROR: $src gave $size bytes, expected $EXPECT_SIZE"
+		exit 1
+	fi
+	chmod 600 "$dst.tmp"
+	mv "$dst.tmp" "$dst"
+	extracted=$((extracted + 1))
+	log "extracted efs$i.bin from $src"
+done
+
+if [ "$extracted" -gt 0 ]; then
+	log "$extracted image(s) extracted."
+	log "The modem loads NV very early, so these take effect on the NEXT boot."
+else
+	log "EFS already present, nothing to do."
+fi

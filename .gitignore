@@ -1,0 +1,4 @@
+# abuild leftovers
+pkg/
+src/
+*.apk

@@ -1,0 +1,21 @@
+# SDX55 fusion modem (Apollo, PCIe via mhi-pci-generic)
+# Match the PCIe parent (Snapdragon X55) and tag wwan/net ports with the
+# same physdev UID that MM uses internally for QRTR-discovered QMI ports
+# ("qcom-soc"). That way the QRTR control plane and the kernel wwan/mhi_net
+# data plane collapse into a single MM device.
+
+ACTION!="add|change|move|bind", GOTO="mm_sdx55_fusion_end"
+
+# wwan ports (DIAG/MBIM/QMI) on the SDX55 PCIe modem
+SUBSYSTEM=="wwan", ATTRS{vendor}=="0x17cb", ATTRS{device}=="0x0306", ENV{ID_MM_QCOM_SOC}="1", ENV{ID_MM_PHYSDEV_UID}="qcom-soc"
+
+# Raw MHI QMI channel does not reply on the SDX55 fusion firmware (the
+# working QMI path is QRTR over IPCR).  Tell MM to skip probing this port
+# so it does not waste 45 seconds of probe timeout.
+SUBSYSTEM=="wwan", KERNEL=="*qmi*", ATTRS{vendor}=="0x17cb", ATTRS{device}=="0x0306", ENV{ID_MM_PORT_IGNORE}="1"
+
+# MHI net ports — orphan in sysfs, match by name
+SUBSYSTEM=="net", KERNEL=="mhi_hwip*", ENV{ID_MM_CANDIDATE}="1", ENV{ID_MM_QCOM_SOC}="1", ENV{ID_MM_PHYSDEV_UID}="qcom-soc"
+SUBSYSTEM=="net", KERNEL=="mhi_swip*", ENV{ID_MM_CANDIDATE}="1", ENV{ID_MM_QCOM_SOC}="1", ENV{ID_MM_PHYSDEV_UID}="qcom-soc"
+
+LABEL="mm_sdx55_fusion_end"

@@ -1,0 +1,51 @@
+# Maintainer: royka1 <roykaandorp@gmail.com>
+pkgname=firmware-xiaomi-apollo
+pkgver=1.0
+pkgrel=0
+pkgdesc="Firmware for the Xiaomi Mi 10T / 10T Pro (apollo)"
+url="https://github.com/royka1/Xiaomi-Apollo-pmOS-packages"
+arch="aarch64"
+license="proprietary"
+options="!check !strip !archcheck !spdx !tracedeps pmb:cross-native"
+source="firmware-xiaomi-apollo-$pkgver.tar.gz"
+
+# These blobs are redistributed from the stock Xiaomi firmware for this model.
+# They are NOT per-device: no IMEI, no RF calibration, no serial numbers. The
+# per-device modem NV (efs1/2/3.bin) is deliberately NOT here -- it is
+# extracted from the owner's own partitions by apollo-modem-support. Never add
+# it to this package; it contains the IMEI.
+
+package() {
+	install -Dm644 "$srcdir"/novatek/novatek_nt36675_j3s_fw01.bin \
+		"$pkgdir"/lib/firmware/novatek/novatek_nt36675_j3s_fw01.bin
+	install -Dm644 "$srcdir"/novatek/novatek_nt36675_j3s_mp01.bin \
+		"$pkgdir"/lib/firmware/novatek/novatek_nt36675_j3s_mp01.bin
+
+	# Adreno 650 GPU: zap shader, GMU and SQE microcode
+	install -Dm644 "$srcdir"/postmarketos/a650_zap.mbn \
+		"$pkgdir"/lib/firmware/postmarketos/a650_zap.mbn
+	install -Dm644 "$srcdir"/qcom/a650_zap.mbn \
+		"$pkgdir"/lib/firmware/qcom/a650_zap.mbn
+	install -Dm644 "$srcdir"/qcom/a650_gmu.bin \
+		"$pkgdir"/lib/firmware/qcom/a650_gmu.bin
+	install -Dm644 "$srcdir"/qcom/a650_sqe.fw \
+		"$pkgdir"/lib/firmware/qcom/a650_sqe.fw
+
+	# Audio, compute and sensor DSPs
+	install -Dm644 "$srcdir"/postmarketos/adsp.mbn \
+		"$pkgdir"/lib/firmware/postmarketos/adsp.mbn
+	install -Dm644 "$srcdir"/postmarketos/cdsp.mbn \
+		"$pkgdir"/lib/firmware/postmarketos/cdsp.mbn
+	install -Dm644 "$srcdir"/postmarketos/slpi.mbn \
+		"$pkgdir"/lib/firmware/postmarketos/slpi.mbn
+
+	# External SDX55 modem: SBL loaded over BHI, AMSS over Sahara
+	install -Dm644 "$srcdir"/qcom/sdx55m/sbl1.mbn \
+		"$pkgdir"/lib/firmware/qcom/sdx55m/sbl1.mbn
+	install -Dm644 "$srcdir"/qcom/sdx55m/multi_image.mbn \
+		"$pkgdir"/lib/firmware/qcom/sdx55m/multi_image.mbn
+}
+
+sha512sums="
+c0e851f2361e1a2b8baef343067e6df73d8c376d36196f5da91ccd1d32bc9a3458f2768e3d45c3c44dbf6323d641b0cce505935f8363846f037c88ad123bef65  firmware-xiaomi-apollo-1.0.tar.gz
+"

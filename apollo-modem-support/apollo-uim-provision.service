@@ -1,0 +1,15 @@
+[Unit]
+Description=Select the USIM application on the external SDX55
+After=tqftpserv-sdx55.service pm-service-native.service
+Wants=tqftpserv-sdx55.service
+Before=ModemManager.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/apollo-uim-provision
+TimeoutStartSec=180
+
+[Install]
+WantedBy=multi-user.target
+RequiredBy=ModemManager.service

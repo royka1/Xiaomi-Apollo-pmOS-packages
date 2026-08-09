@@ -1,0 +1,40 @@
+--- a/src/mm-bearer-qmi.c
++++ b/src/mm-bearer-qmi.c
+@@ -2082,8 +2082,16 @@
+             return;
+         }
+ 
+-        /* If mux id given, bind mux data port */
+-        if (ctx->sio_port_failed || ctx->mux_id != QMI_DEVICE_MUX_ID_UNBOUND) {
++        /* If mux id given, bind mux data port.
++         *
++         * Bind also when the endpoint is PCIe but unmultiplexed: an external
++         * MHI modem (e.g. a SDX55 attached to a SM8250) rejects WDS Start
++         * Network with InvalidOperation unless the client has been bound to an
++         * endpoint first, and QMI_DEVICE_MUX_ID_UNBOUND is how "no mux" is
++         * spelled in that request. */
++        if (ctx->sio_port_failed ||
++            ctx->mux_id != QMI_DEVICE_MUX_ID_UNBOUND ||
++            ctx->endpoint.type == QMI_DATA_ENDPOINT_TYPE_PCIE) {
+             g_autoptr(QmiMessageWdsBindMuxDataPortInput) input = NULL;
+ 
+             mm_obj_dbg (self, "binding to mux id %d", ctx->mux_id);
+@@ -2227,8 +2235,16 @@
+             return;
+         }
+ 
+-        /* If mux id given, bind mux data port */
+-        if (ctx->sio_port_failed || ctx->mux_id != QMI_DEVICE_MUX_ID_UNBOUND) {
++        /* If mux id given, bind mux data port.
++         *
++         * Bind also when the endpoint is PCIe but unmultiplexed: an external
++         * MHI modem (e.g. a SDX55 attached to a SM8250) rejects WDS Start
++         * Network with InvalidOperation unless the client has been bound to an
++         * endpoint first, and QMI_DEVICE_MUX_ID_UNBOUND is how "no mux" is
++         * spelled in that request. */
++        if (ctx->sio_port_failed ||
++            ctx->mux_id != QMI_DEVICE_MUX_ID_UNBOUND ||
++            ctx->endpoint.type == QMI_DATA_ENDPOINT_TYPE_PCIE) {
+             g_autoptr(QmiMessageWdsBindMuxDataPortInput) input = NULL;
+ 
+             mm_obj_dbg (self, "binding to mux id %d", ctx->mux_id);

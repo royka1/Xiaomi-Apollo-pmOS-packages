@@ -1,0 +1,33 @@
+# Maintainer: royka1 <roykaandorp@gmail.com>
+pkgname=alsa-ucm-conf-xiaomi-apollo
+pkgver=1.0
+pkgrel=0
+pkgdesc="ALSA UCM configuration for the Xiaomi Mi 10T / 10T Pro (apollo)"
+url="https://github.com/royka1/Xiaomi-Apollo-pmOS-packages"
+arch="noarch"
+license="BSD-3-Clause"
+depends="alsa-ucm-conf"
+options="!check"
+source="
+	HiFi.conf
+	Xiaomi-Mi-10T.conf
+"
+
+package() {
+	local ucm="$pkgdir"/usr/share/alsa/ucm2
+
+	install -Dm644 "$srcdir"/HiFi.conf "$ucm"/Xiaomi-Mi-10T/HiFi.conf
+	install -Dm644 "$srcdir"/Xiaomi-Mi-10T.conf "$ucm/Xiaomi-Mi-10T/Xiaomi Mi 10T.conf"
+
+	# alsa-lib looks the card up under conf.d/<driver>/. The card reports
+	# its short name as "X10T" and its long name as "Xiaomi Mi 10T"; which
+	# one is used depends on the alsa-lib version, so provide both.
+	mkdir -p "$ucm"/conf.d/sm8250
+	ln -s "../../Xiaomi-Mi-10T/Xiaomi Mi 10T.conf" "$ucm"/conf.d/sm8250/X10T.conf
+	ln -s "../../Xiaomi-Mi-10T/Xiaomi Mi 10T.conf" "$ucm/conf.d/sm8250/Xiaomi Mi 10T.conf"
+}
+
+sha512sums="
+78ac5f774cb52d8e6e9b2dd1211a2ba1c7d371375b675b5dceb160d7cf6cfa9fc8f56bc0aa0517e03639c6bd3b601762571a32ee3b1e70e7cf28a447052b47b7  HiFi.conf
+7e6f362051b1d7e876556f7e2aae031675b0bd536b62463666d0d7914457c5f141f1fdec395cb54d7af23fcf2f14aae0e039fda97f0338d8467067b85c8b2a85  Xiaomi-Mi-10T.conf
+"

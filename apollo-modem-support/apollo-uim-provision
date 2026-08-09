@@ -1,0 +1,37 @@
+#!/bin/sh
+# Select the USIM application on the external SDX55.
+#
+# msm-modem-uim-selection cannot do this: it probes /dev/modem, then
+# /dev/wwan0qmi0 (where QMI CID allocation times out on this modem), then only
+# qrtr://0. The PCIe-attached SDX55 lives on QRTR node 3, so the generic
+# service never reaches it and the modem is left with
+# "Primary GW: session doesn't exist" - which ModemManager reports as
+# sim-missing. Same logic as upstream, pointed at the right node.
+set -eu
+DEV="${APOLLO_QMI_DEV:-qrtr://3}"
+WAIT="${SIM_WAIT_TIME:-90}"
+
+st=""
+i=0
+while [ "$i" -lt "$WAIT" ]; do
+	st=$(qmicli --silent -d "$DEV" --uim-get-card-status 2>/dev/null || true)
+	printf "%s" "$st" | grep -Fq "Card state: 'present'" && break
+	i=$((i+1)); sleep 1
+done
+
+if ! printf "%s" "$st" | grep -Fq "Card state: 'present'"; then
+	echo "No SIM present after ${WAIT}s"; exit 0
+fi
+echo "SIM present after ${i}s"
+
+if ! printf "%s" "$st" | grep -Fq "Primary GW:   session doesn't exist"; then
+	echo "Primary GW session already active"; exit 0
+fi
+
+SLOT=$(printf "%s" "$st" | grep "Card state: 'present'" -m1 -B1 | head -n1 | cut -c7-7)
+AID=$(printf "%s" "$st" | grep "usim (2)" -m1 -A3 | tail -n1 | awk "{print \$1}")
+[ -n "$AID" ] || { echo "No usim application found"; exit 0; }
+
+echo "Selecting $AID on slot $SLOT"
+qmicli --silent -pd "$DEV" \
+	--uim-change-provisioning-session="slot=$SLOT,activate=yes,session-type=primary-gw-provisioning,aid=$AID"

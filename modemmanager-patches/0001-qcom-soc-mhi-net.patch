@@ -1,0 +1,17 @@
+--- a/src/plugins/qcom-soc/mm-broadband-modem-qmi-qcom-soc.c
++++ b/src/plugins/qcom-soc/mm-broadband-modem-qmi-qcom-soc.c
+@@ -128,6 +128,14 @@
+     if (g_strcmp0 (net_port_driver, "ipa") == 0)
+         return peek_port_qmi_for_data_ipa (self, data, out_endpoint, error);
+ 
++    /* An external modem attached over PCIe/MHI (e.g. a SDX55 next to a SM8250)
++     * exposes its control plane over QRTR, which makes us select this plugin,
++     * but its data plane is a mhi_net netdev instead of IPA or BAM-DMUX.
++     * The port lookup is the same as for IPA: any QMI port can manage the
++     * interface, and the endpoint info comes from the port itself. */
++    if (g_strcmp0 (net_port_driver, "mhi_net") == 0)
++        return peek_port_qmi_for_data_ipa (self, data, out_endpoint, error);
++
+     if (g_strcmp0 (net_port_driver, "bam-dmux") == 0)
+         return peek_port_qmi_for_data_bam_dmux (self, data, out_endpoint, error);
+ 
