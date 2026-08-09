@@ -16,7 +16,7 @@ The kernel lives separately:
 | `tqftpserv-sdx55` | TFTP/RFS server over QRTR, patched for this modem |
 | `apollo-modem-support` | EFS extraction, USIM provisioning, udev rules for ModemManager and fastrpc |
 
-## Two things you have to know
+## Three things you have to know
 
 ### 1. Put the SIM in physical slot 1
 
@@ -39,22 +39,6 @@ very early, **cellular starts working on the second boot** after a fresh
 install. Without them the SDX55 boots and then ERRFATALs about 15 s into
 mission mode.
 
-## Building
-
-These are aports. pmbootstrap takes a single aports tree, so symlink them into
-your pmaports checkout:
-
-```sh
-git clone https://github.com/royka1/Xiaomi-Apollo-pmOS-packages
-cd <your-pmaports>/device/testing
-for p in ../../../Xiaomi-Apollo-pmOS-packages/*/; do
-    [ -f "$p/APKBUILD" ] && ln -sfn "$(realpath "$p")" .
-done
-```
-
-Then `pmbootstrap build firmware-xiaomi-apollo` etc., or just let
-`pmbootstrap install` pull them in as dependencies of `device-xiaomi-apollo`.
-
 ### 3. Pin the hand-installed packages
 
 `apollo-pin-packages` (from `apollo-modem-support`) writes exact-version
@@ -71,6 +55,22 @@ apollo-pin-packages           # pin to what is installed now
 apollo-pin-packages status    # show pins
 apollo-pin-packages unpin     # before installing a newer local build
 ```
+
+## Building
+
+These are aports. pmbootstrap takes a single aports tree, so symlink them into
+your pmaports checkout:
+
+```sh
+git clone https://github.com/royka1/Xiaomi-Apollo-pmOS-packages
+cd <your-pmaports>/device/testing
+for p in ../../../Xiaomi-Apollo-pmOS-packages/*/; do
+    [ -f "$p/APKBUILD" ] && ln -sfn "$(realpath "$p")" .
+done
+```
+
+Then `pmbootstrap build firmware-xiaomi-apollo` etc., or just let
+`pmbootstrap install` pull them in as dependencies of `device-xiaomi-apollo`.
 
 ## Still manual: ModemManager
 
