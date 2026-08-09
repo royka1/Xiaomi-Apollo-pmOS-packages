@@ -1,0 +1,75 @@
+#!/bin/sh
+# Stop `apk upgrade` from replacing the locally built packages this device
+# depends on.
+#
+# Both of these are installed by hand and share a package name with something
+# in the repositories, so a plain upgrade silently swaps them out:
+#
+#   linux-postmarketos-qcom-sm8250
+#       The custom kernel. When the repo version wins, apk deletes
+#       /lib/modules/<ver>/ and installs its own tree, while boot-deploy fails
+#       (the repo package ships no apollo DTB) -- so the phone still boots the
+#       old image with an empty module tree and WiFi, sound and the modem all
+#       die at once. lsmod showing ~5 modules is the tell.
+#
+#   modemmanager
+#       Carries two out-of-tree patches needed for mobile data. An upgrade
+#       keeps registration and SMS working, so the breakage is easy to
+#       misread.
+#
+# Pinning writes an exact-version constraint into /etc/apk/world, which is
+# exactly what `apk add pkg=version` does.
+#
+# After installing a NEW local build, run this again to move the pin forward:
+#
+#     apollo-pin-packages unpin
+#     apk add --allow-untrusted ./linux-...apk
+#     apollo-pin-packages
+set -eu
+
+PKGS="linux-postmarketos-qcom-sm8250 modemmanager"
+
+installed_version() {
+	apk info -v "$1" 2>/dev/null | grep "^$1-" | head -1 | sed "s/^$1-//"
+}
+
+action="${1:-pin}"
+rc=0
+
+for pkg in $PKGS; do
+	ver=$(installed_version "$pkg")
+	if [ -z "$ver" ]; then
+		echo "skip: $pkg is not installed"
+		continue
+	fi
+
+	case "$action" in
+	pin)
+		if apk add "$pkg=$ver" >/dev/null 2>&1; then
+			echo "pinned  $pkg = $ver"
+		else
+			echo "FAILED to pin $pkg = $ver" >&2
+			rc=1
+		fi
+		;;
+	unpin)
+		if apk add "$pkg" >/dev/null 2>&1; then
+			echo "unpinned $pkg (tracks the repository again)"
+		else
+			echo "FAILED to unpin $pkg" >&2
+			rc=1
+		fi
+		;;
+	status)
+		printf 'installed %-34s %s\n' "$pkg" "$ver"
+		grep -E "^$pkg([=<>]|$)" /etc/apk/world 2>/dev/null \
+			| sed 's/^/  world: /' || echo "  world: (no constraint -- NOT pinned)"
+		;;
+	*)
+		echo "usage: ${0##*/} [pin|unpin|status]" >&2
+		exit 2
+		;;
+	esac
+done
+
+exit $rc

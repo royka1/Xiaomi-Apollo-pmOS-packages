@@ -55,6 +55,23 @@ done
 Then `pmbootstrap build firmware-xiaomi-apollo` etc., or just let
 `pmbootstrap install` pull them in as dependencies of `device-xiaomi-apollo`.
 
+### 3. Pin the hand-installed packages
+
+`apollo-pin-packages` (from `apollo-modem-support`) writes exact-version
+constraints for `linux-postmarketos-qcom-sm8250` and `modemmanager` so
+`apk upgrade` cannot replace them with repository builds.
+
+This matters: both share a package name with something in the repos. When the
+repo kernel wins, apk deletes `/lib/modules/<ver>/` and boot-deploy fails (the
+repo package has no apollo DTB), so the phone boots the old image with an empty
+module tree and WiFi, sound and the modem all stop at once.
+
+```sh
+apollo-pin-packages           # pin to what is installed now
+apollo-pin-packages status    # show pins
+apollo-pin-packages unpin     # before installing a newer local build
+```
+
 ## Still manual: ModemManager
 
 `modemmanager-patches/` holds two patches that are needed for **mobile data**

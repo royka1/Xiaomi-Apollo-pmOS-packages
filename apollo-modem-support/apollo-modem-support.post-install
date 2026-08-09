@@ -16,4 +16,8 @@ cat <<'MSG'
 * Put the SIM in physical slot 1. In slot 2 nothing addresses the card by
 * default and the modem never finishes SIM init.
 *
+* Run 'apollo-pin-packages' once everything works. It pins the custom kernel
+* and ModemManager so 'apk upgrade' cannot silently replace them -- that is
+* what wipes /lib/modules and kills WiFi, sound and the modem together.
+*
 MSG
