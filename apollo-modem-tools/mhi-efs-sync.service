@@ -1,0 +1,29 @@
+[Unit]
+Description=SDX55 remote EFS (Sahara memory-debug) service
+# The SDX55 firmware is built RMTEFS and expects the AP to host its
+# filesystem. Android does this with /vendor/bin/ks on MHI channel 10.
+#
+# Do NOT use BindsTo/After=dev-wwan0efs0.device: wwan character devices are
+# not tagged "systemd" by udev, so that .device unit never activates and the
+# service would wait forever ("Expecting device /dev/wwan0efs0..."). Wait for
+# the node directly instead.
+After=systemd-udevd.service
+Wants=systemd-udevd.service
+
+[Service]
+Type=simple
+# The channel only exists once MHI has enumerated the modem (~28 s on this
+# device), so poll for it rather than assuming it is already there.
+ExecStartPre=/bin/sh -c 'for i in $(seq 1 240); do [ -e /dev/wwan0efs0 ] && exit 0; sleep 0.5; done; echo "/dev/wwan0efs0 never appeared" >&2; exit 1'
+# Safe mode: regions are written as plain files under /var/lib/mhi-efs so a
+# first run can be inspected. Once the region names are confirmed to match the
+# partition labels, switch to the Android equivalent:
+#   /usr/bin/mhi_efs_sync -o /dev/disk/by-partlabel -g mdm1 -W
+ExecStart=/usr/bin/mhi_efs_sync -v -o /var/lib/mhi-efs
+Restart=always
+RestartSec=2
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

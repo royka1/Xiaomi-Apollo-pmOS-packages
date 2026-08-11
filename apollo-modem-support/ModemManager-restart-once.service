@@ -1,0 +1,17 @@
+[Unit]
+Description=Restart ModemManager once if it found no modem
+Documentation=https://github.com/royka1/Xiaomi-Apollo-pmOS-packages
+# ModemManager starts long before the modem does: the SDX55 is powered on by the
+# ESOC driver and takes around half a minute to transfer its images and reach
+# mission mode. ModemManager that started too early gives up on the QRTR port
+# and marks the modem invalid, and nothing makes it look again.
+After=ModemManager.service
+Wants=ModemManager.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/apollo-mm-restart-once
+
+[Install]
+WantedBy=multi-user.target

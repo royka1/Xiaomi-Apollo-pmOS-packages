@@ -1,0 +1,24 @@
+#!/bin/sh
+# Give the modem time to appear, and restart ModemManager once if it did not.
+#
+# The modem is not present when ModemManager starts, and it can disappear again
+# afterwards: this modem takes an error fatal and recovers on its own, which is
+# normal for it. ModemManager gives up on a port that stops answering, so a
+# single nudge once the modem is actually there is worth more than waiting for
+# it to notice by itself.
+set -u
+
+WAIT=${APOLLO_MM_WAIT:-30}
+
+sleep "$WAIT"
+
+if mmcli -L 2>/dev/null | grep -q "/Modem/"; then
+	echo "apollo-mm-restart-once: modem already present, nothing to do"
+	exit 0
+fi
+
+echo "apollo-mm-restart-once: no modem after ${WAIT}s, restarting ModemManager"
+systemctl restart ModemManager || exit 0
+
+sleep 10
+mmcli -L 2>/dev/null || true

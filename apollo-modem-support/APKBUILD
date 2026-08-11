@@ -1,17 +1,20 @@
 # Maintainer: royka1 <roykaandorp@gmail.com>
 pkgname=apollo-modem-support
 pkgver=1.0
-pkgrel=0
+pkgrel=4
 pkgdesc="Glue needed to make the external SDX55 modem work on the Xiaomi Mi 10T (apollo)"
 url="https://github.com/royka1/Xiaomi-Apollo-pmOS-packages"
 arch="noarch"
 license="GPL-2.0-only"
-depends="libqmi udev"
+depends="libqmi qmi-utils udev"
 install="$pkgname.post-install"
 options="!check"
 source="
 	apollo-efs-extract
 	apollo-efs-extract.service
+	apollo-mm-restart-once
+	ModemManager-restart-once.service
+	10-apollo-modem-ordering.conf
 	apollo-uim-provision
 	apollo-uim-provision.service
 	apollo-pin-packages
@@ -27,6 +30,16 @@ package() {
 	install -Dm755 "$srcdir"/apollo-efs-extract "$pkgdir"/usr/bin/apollo-efs-extract
 	install -Dm644 "$srcdir"/apollo-efs-extract.service \
 		"$pkgdir"/usr/lib/systemd/system/apollo-efs-extract.service
+
+	# Nudge ModemManager once if the modem was not there when it started.
+	install -Dm755 "$srcdir"/apollo-mm-restart-once \
+		"$pkgdir"/usr/bin/apollo-mm-restart-once
+	install -Dm644 "$srcdir"/ModemManager-restart-once.service \
+		"$pkgdir"/usr/lib/systemd/system/ModemManager-restart-once.service
+
+	# ...and make sure it is not started before the modem can answer at all.
+	install -Dm644 "$srcdir"/10-apollo-modem-ordering.conf \
+		"$pkgdir"/usr/lib/systemd/system/ModemManager.service.d/10-apollo-modem-ordering.conf
 
 	# Enable via a systemd preset. Hand-rolled symlinks into
 	# multi-user.target.wants/ fail silently at install time because the
@@ -65,10 +78,13 @@ package() {
 sha512sums="
 55a6411d8b70c078e44a758c5baaf03cd3aea40d6303f4424d2e0ba613c6c2bab9c7ee515d2c9ce53d2a1043b2aca9346a9921300da15d454de430747581d3f6  apollo-efs-extract
 30d9f3b1901eeb0af33cd74e2828baff4353a610e6467fc4334d178b2d915097d0093911ff77aa0a48a26c104fd122e18e867721ff226fc664eb4d5bfb488f1b  apollo-efs-extract.service
+5f1a75401b7a7ded0ca57163488288d8b8fda145b0de3b852442824d2777601e51a659873bbf78466d51ae917ad8be235e6708574f1b6594590adddf2e8fce8a  apollo-mm-restart-once
+dafc58f2b420758f5997f5fb627adb0c2a6154ae211af39f2a4e331b5a10c10e99fa42e1789c11031d3baa171d5b9272c28e39ab8762fcdfa852a50d9730f9cb  ModemManager-restart-once.service
+c78a2a4bf6660a7ff49a8149e721e0195bda6cd400d20005466d9e918212590c700ec9c20a0edf4da637ed34fc2e32a64b8302798c19c9f2252d92c5ca803afd  10-apollo-modem-ordering.conf
 a22d31eacccf8241a61429a70c44fb42bd864cb7c8bbfa420948b472e6ad2a098478c9ad108e566c0d627c3d5018a68f0402635e4645b3344b9645b2a6d2deed  apollo-uim-provision
 99d99244f17c370aaedf9e081edbd997319401876af29b498f25ef07979b32001dc86b6a3c5206fabaecf2a518022cc40f8b207a593837e8dd338a4fd8dafe6e  apollo-uim-provision.service
 9d5c7ac99cb55c6723214abdec51a870c655661b5bcbe0d9db9653c2b7176e9fd0a3113aede311e48b18e9628a7051a0dfd400875275e7f84b00d1bd922be102  apollo-pin-packages
-a3e7af9ddc85865eef6605a4c2756d6d6dfb82a9a4bfcda045d72dd14c44275e218be42d2b386c08c605410af4d526386a15c9f142cd6e2dbd0bede03612a950  90-apollo-modem-support.preset
+e95cf681f0d074e9599c67cc656f5cf6a4359f43e00226aa5b09ca9aa9a6c1b641bcb74d7e2e0c4f3e9d6282a53bfe43ea74f8fd44d0a98fc351d357548125e0  90-apollo-modem-support.preset
 ba8b492299eb0fd166a883f74f3935642d487e8b3778c4c0fe3dd4bc8b423d506cb4efbd702786808d94bc209122fdbee304f59d68fc7665216c0cb52995586e  77-mm-ignore-sdx55-efs.rules
 c02b119bf56635398483c980e89358d20f9bfeec9f87354a95a88ac1615e2267fc5e437e9d87ea300d3e974638cb464e16955dea5fda29d5b177e5948e32f439  77-mm-sdx55-fusion.rules
 d0e8f2e378130130ac72703aed957f7638e2dd75acf4aa421e1b4592c6cb6d296b652db0d9c242be4e56326760ce18d28c1e36ae553d0b7a7f91e12ab0353f22  81-libssc-xiaomi-apollo.rules

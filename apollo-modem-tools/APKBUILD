@@ -1,7 +1,7 @@
 # Maintainer: royka1 <roykaandorp@gmail.com>
 pkgname=apollo-modem-tools
 pkgver=1.0
-pkgrel=0
+pkgrel=3
 pkgdesc="Userspace services the SDX55 expects on the AP (Xiaomi Mi 10T / apollo)"
 url="https://github.com/royka1/Xiaomi-Apollo-pmOS-packages"
 arch="aarch64"
@@ -13,8 +13,10 @@ options="!check"
 source="
 	pm_service_native.c
 	mdm_helper_native.c
+	mhi_efs_sync.c
 	pm-service-native.service
 	mdm-helper-native.service
+	mhi-efs-sync.service
 	90-apollo-modem-tools.preset
 "
 
@@ -26,18 +28,28 @@ build() {
 	#
 	# mdm_helper_native replaces the vendor ESOC mdm_helper: it drives the
 	# AP2MDM sideband handshake and signals BOOT_DONE.
+	#
+	# The modem's remote filesystem is served by tqftpserv-sdx55 (patched
+	# upstream tqftpserv), NOT by a hand-rolled server: one missing seek/rsize
+	# returns wrong bytes on offset reads and the modem drops the SIM.
+	#
+	# mhi_efs_sync replaces Android's /vendor/bin/ks on MHI channel 10.
 	$CC $CFLAGS $LDFLAGS -o pm_service_native "$srcdir"/pm_service_native.c
 	$CC $CFLAGS $LDFLAGS -o mdm_helper_native "$srcdir"/mdm_helper_native.c
+	$CC $CFLAGS $LDFLAGS -o mhi_efs_sync "$srcdir"/mhi_efs_sync.c
 }
 
 package() {
 	install -Dm755 pm_service_native "$pkgdir"/usr/bin/pm_service_native
 	install -Dm755 mdm_helper_native "$pkgdir"/usr/bin/mdm_helper_native
+	install -Dm755 mhi_efs_sync "$pkgdir"/usr/bin/mhi_efs_sync
 
 	install -Dm644 "$srcdir"/pm-service-native.service \
 		"$pkgdir"/usr/lib/systemd/system/pm-service-native.service
 	install -Dm644 "$srcdir"/mdm-helper-native.service \
 		"$pkgdir"/usr/lib/systemd/system/mdm-helper-native.service
+	install -Dm644 "$srcdir"/mhi-efs-sync.service \
+		"$pkgdir"/usr/lib/systemd/system/mhi-efs-sync.service
 
 	install -Dm644 "$srcdir"/90-apollo-modem-tools.preset \
 		"$pkgdir"/usr/lib/systemd/system-preset/90-apollo-modem-tools.preset
@@ -45,7 +57,7 @@ package() {
 
 sha512sums="
 461490e2f8df52950ead711e7e5d09440872ef9ebcb7c324ef1f025824a8b964bfb2b7fadcba633e327c75a294ae8eb381eea198937daab7de721d9d96395cce  pm_service_native.c
-6a849345ad147332ac4c29636e60b66b7b532266f5e34095f8b4a69d3d5d7dd870e9992824497ccff756e631811ccb12c9717246e7e3cb9f6a826596ec548b07  mdm_helper_native.c
+1022b00fffcf326b987dd0f1825e18cda1be812af0a1d2d2db4ef02d4538a68a6e0ea52fecc717ebf776ff9d0f32b0f149a554b9536c8f01c9808de9f7676806  mdm_helper_native.c
 ed09304d08649c3a67926806f76c8cc6c19af5eaf75289cb331e90e6387900c597c4fac80c6f2b0960f38574fbc145938ab7c39cd86359b1a548063a992bc6c6  pm-service-native.service
 53267ff5cc8fbedba959f20b9d074935ab5814d1d01015c2a4c205b84c315c5af581e6ee8d7b4d06d53c6bf56cac51a261d4f49b73f2f57c0c1bc767aa1de411  mdm-helper-native.service
 83c4169bf38cd9e1d28b98f8646eb3e10448f590f7854c7503992e1e4b3bd038e0e2e150de668a446734a754424ac1ea531cd8d36603a76251a07fa358c9cd7f  90-apollo-modem-tools.preset

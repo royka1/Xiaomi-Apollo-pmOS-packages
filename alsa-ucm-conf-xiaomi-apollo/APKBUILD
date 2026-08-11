@@ -1,7 +1,7 @@
 # Maintainer: royka1 <roykaandorp@gmail.com>
 pkgname=alsa-ucm-conf-xiaomi-apollo
 pkgver=1.0
-pkgrel=0
+pkgrel=3
 pkgdesc="ALSA UCM configuration for the Xiaomi Mi 10T / 10T Pro (apollo)"
 url="https://github.com/royka1/Xiaomi-Apollo-pmOS-packages"
 arch="noarch"

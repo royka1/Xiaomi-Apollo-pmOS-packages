@@ -2,3 +2,6 @@
 # application selected before ModemManager probes.
 enable apollo-efs-extract.service
 enable apollo-uim-provision.service
+
+# ModemManager starts before the modem exists; this looks again once it does.
+enable ModemManager-restart-once.service

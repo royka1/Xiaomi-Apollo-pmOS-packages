@@ -1,3 +1,5 @@
 # Services the SDX55 expects from the AP; without them it never leaves SBL.
 enable pm-service-native.service
 enable mdm-helper-native.service
+# EFS mirror; Android runs /vendor/bin/ks on MHI channel 10.
+enable mhi-efs-sync.service

@@ -320,12 +320,25 @@ static int poll_status(const struct config *cfg, struct state *st)
 	return 0;
 }
 
+/*
+ * Tell the ESOC the modem is up, once per boot cycle, as soon as its status line
+ * goes high.
+ *
+ * Deliberately not conditional on having answered an image request this cycle.
+ * Only the first boot goes through ESOC_REQ_IMG; when the modem crashes and comes
+ * back, the kernel's Sahara client does the transfer over MHI and the ESOC never
+ * asks for anything. Waiting for a request that will not arrive means BOOT_DONE
+ * is never sent, so the driver never leaves CRASH -- and from then on it discards
+ * every error fatal as "modem in crash state", which strands the modem off for
+ * good after its second crash. The modem's own status line is the thing worth
+ * believing here.
+ */
 static int maybe_send_boot_done(const struct config *cfg, const char *resp_path, struct state *st)
 {
 	unsigned int status = 0;
 	int rc;
 
-	if (!cfg->send_boot_done || st->boot_done_sent || !st->img_xfer_done_sent || st->esoc_fd < 0)
+	if (!cfg->send_boot_done || st->boot_done_sent || st->esoc_fd < 0)
 		return 0;
 
 	rc = read_esoc_status_fd(st->esoc_fd, ESOC_GET_STATUS, &status);

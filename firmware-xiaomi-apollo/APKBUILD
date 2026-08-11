@@ -1,13 +1,22 @@
 # Maintainer: royka1 <roykaandorp@gmail.com>
 pkgname=firmware-xiaomi-apollo
 pkgver=1.0
-pkgrel=0
+pkgrel=2
 pkgdesc="Firmware for the Xiaomi Mi 10T / 10T Pro (apollo)"
 url="https://github.com/royka1/Xiaomi-Apollo-pmOS-packages"
 arch="aarch64"
 license="proprietary"
 options="!check !strip !archcheck !spdx !tracedeps pmb:cross-native"
-source="firmware-xiaomi-apollo-$pkgver.tar.gz"
+source="firmware-xiaomi-apollo-$pkgver.tar.gz
+	adspr.jsn
+	adspua.jsn
+	cdspr.jsn
+	slpir.jsn
+	slpius.jsn
+	cs35l41-dsp1-spk-prot.wmfw
+	cs35l41-dsp1-spk-prot.bin
+	cs35l41-dsp1-spk-prot-RCV.bin
+	"
 
 # These blobs are redistributed from the stock Xiaomi firmware for this model.
 # They are NOT per-device: no IMEI, no RF calibration, no serial numbers. The
@@ -38,6 +47,24 @@ package() {
 		"$pkgdir"/lib/firmware/postmarketos/cdsp.mbn
 	install -Dm644 "$srcdir"/postmarketos/slpi.mbn \
 		"$pkgdir"/lib/firmware/postmarketos/slpi.mbn
+
+	# pd-mapper builds its service-registry domain list from these. Without
+	# adspua.jsn there is no "avs/audio" domain, and the modem - which asks
+	# the AP's registry for exactly that name before it publishes its own QMI
+	# services - sits waiting on a lookup that is answered with nothing.
+	install -Dm644 "$srcdir"/adspr.jsn "$srcdir"/adspua.jsn \
+		"$srcdir"/cdspr.jsn "$srcdir"/slpir.jsn "$srcdir"/slpius.jsn \
+		-t "$pkgdir"/lib/firmware/postmarketos/
+
+	# Speaker protection firmware for the two CS35L41 amplifiers. Ship only
+	# the unsuffixed names: wm_adsp prefers a copy suffixed with the ASoC
+	# component prefix (-LCV/-RCV) and will happily load a mismatched one,
+	# which boots the DSP with a header it cannot parse ("Algorithm count
+	# excessive") instead of failing.
+	install -Dm644 "$srcdir"/cs35l41-dsp1-spk-prot.wmfw \
+		"$srcdir"/cs35l41-dsp1-spk-prot.bin \
+		"$srcdir"/cs35l41-dsp1-spk-prot-RCV.bin \
+		-t "$pkgdir"/lib/firmware/cirrus/
 
 	# External SDX55 modem: SBL loaded over BHI, AMSS over Sahara
 	install -Dm644 "$srcdir"/qcom/sdx55m/sbl1.mbn \
