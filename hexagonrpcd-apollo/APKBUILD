@@ -1,0 +1,57 @@
+# Maintainer: royka1 <roykaandorp@gmail.com>
+pkgname=hexagonrpcd-apollo
+pkgver=0.4.0
+pkgrel=0
+_commit="93f3467dcfe1601bb70547611866a069ae914de5"
+pkgdesc="HexagonFS daemon with the fixes the Xiaomi Mi 10T (apollo) sensors need"
+url="https://github.com/linux-msm/hexagonrpc"
+arch="aarch64"
+license="GPL-2.0-or-later"
+# Reuses libhexagonrpc and chrecd from the stock package; only the daemon
+# differs, so that has to stay installed.
+depends="hexagonrpcd"
+makedepends="meson hexagonrpcd"
+options="!check"
+subpackages="$pkgname-systemd:systemd"
+source="
+	hexagonrpc-$_commit.tar.gz::https://github.com/linux-msm/hexagonrpc/archive/$_commit.tar.gz
+	apollo-sensor-fixes.patch
+	hexagonrpcd-adsp-rootpd.service.d-apollo.conf
+	hexagonrpcd-adsp-sensorspd.service.d-apollo.conf
+	hexagonrpcd-sdsp.service.d-apollo.conf
+"
+builddir="$srcdir/hexagonrpc-$_commit"
+
+build() {
+	abuild-meson . output
+	meson compile -C output
+}
+
+package() {
+	# Only the daemon: the library and chrecd come from the stock package
+	# and are unmodified.
+	install -Dm755 output/hexagonrpcd/hexagonrpcd \
+		"$pkgdir"/usr/bin/hexagonrpcd-apollo
+
+}
+
+systemd() {
+	pkgdesc="$pkgdesc (systemd drop-ins)"
+	install_if="systemd $pkgname=$pkgver-r$pkgrel"
+
+	# Point the stock units at our daemon rather than replacing them, so
+	# upstream stays in charge of ordering and dependencies.
+	local s
+	for s in hexagonrpcd-adsp-rootpd hexagonrpcd-adsp-sensorspd hexagonrpcd-sdsp; do
+		install -Dm644 "$srcdir/$s.service.d-apollo.conf" \
+			"$subpkgdir"/usr/lib/systemd/system/$s.service.d/10-apollo.conf
+	done
+}
+
+sha512sums="
+0ebbd854c34c7e8a57b40432f6293b52a1dcd459096644b7d8d2fc132a23818d121e4d39891e32c392819dbe9dd0696f291769a4c83d04c2f732edeed1fad896  hexagonrpc-93f3467dcfe1601bb70547611866a069ae914de5.tar.gz
+8905444355573f66fb907d298be7fa6f36b318bf6e28c239b23ef5456165980c6327f661d187964ce62bd040254464898c61662db92b2efb7e12d2102d47c30d  apollo-sensor-fixes.patch
+5be05d9f5a94bde8d0a24a1e481398820585bc63aec0ebe2ae23836b4ec953eabe3fb03dc403304acc0c528a6441f465f4db3db5694600d585450bb3af8e5b73  hexagonrpcd-adsp-rootpd.service.d-apollo.conf
+d7073d895aa48389a5fee9b4b252c1b6ea12da32c609119359e11a47311471ceedc9e07a7c546854c47818ae2a4dc8cbf1ad31cce3e5d6f9b245458398149fd8  hexagonrpcd-adsp-sensorspd.service.d-apollo.conf
+04bc39901a6e21a75af165fe17cf3c7791e1e2de8a0632530ed723be060315a92eff1e449740c14b8429b9f9694719ada8e121b3123afae24b023ae9e02ad62d  hexagonrpcd-sdsp.service.d-apollo.conf
+"

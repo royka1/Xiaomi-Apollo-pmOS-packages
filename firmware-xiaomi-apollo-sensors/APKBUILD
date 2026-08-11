@@ -1,0 +1,23 @@
+# Maintainer: royka1 <roykaandorp@gmail.com>
+pkgname=firmware-xiaomi-apollo-sensors
+pkgver=1.0
+pkgrel=0
+pkgdesc="Sensor registry and DSP configuration for the Xiaomi Mi 10T (apollo)"
+url="https://github.com/royka1/Xiaomi-Apollo-pmOS-packages"
+arch="aarch64"
+license="proprietary"
+options="!check !strip !archcheck !spdx !tracedeps textrels pmb:cross-native"
+source="apollo-sensors-$pkgver.tar.gz"
+
+# HexagonFS serves this tree to the sensor DSP. Without it SLPI has no registry
+# to read, crash-loops roughly 25 times a minute, and takes the rest of the
+# system down with it. Taken from the stock firmware; no per-device data.
+
+package() {
+	mkdir -p "$pkgdir"/usr/share/qcom
+	cp -a "$srcdir"/sm8250 "$pkgdir"/usr/share/qcom/
+}
+
+sha512sums="
+b6c0b2009e008db90f32bd6ca1e9df0f3bd8737f98c89a8090d88a89ab6950d2e112a1313f274b3363b533e59ecba0edd1462f06e1469d8856dfc2dba94c6343  apollo-sensors-1.0.tar.gz
+"
