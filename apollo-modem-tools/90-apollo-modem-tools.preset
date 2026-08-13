@@ -3,3 +3,6 @@ enable pm-service-native.service
 enable mdm-helper-native.service
 # EFS mirror; Android runs /vendor/bin/ks on MHI channel 10.
 enable mhi-efs-sync.service
+# ADSP F3: the ADSP announces its diag feature mask once per boot, so the
+# capture has to be there from the start.
+enable adsp-diag.service

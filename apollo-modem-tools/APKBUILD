@@ -1,7 +1,7 @@
 # Maintainer: royka1 <roykaandorp@gmail.com>
 pkgname=apollo-modem-tools
 pkgver=1.0
-pkgrel=3
+pkgrel=17
 pkgdesc="Userspace services the SDX55 expects on the AP (Xiaomi Mi 10T / apollo)"
 url="https://github.com/royka1/Xiaomi-Apollo-pmOS-packages"
 arch="aarch64"
@@ -14,9 +14,12 @@ source="
 	pm_service_native.c
 	mdm_helper_native.c
 	mhi_efs_sync.c
+	diag_reader.c
+	adsp_diag.c
 	pm-service-native.service
 	mdm-helper-native.service
 	mhi-efs-sync.service
+	adsp-diag.service
 	90-apollo-modem-tools.preset
 "
 
@@ -37,12 +40,20 @@ build() {
 	$CC $CFLAGS $LDFLAGS -o pm_service_native "$srcdir"/pm_service_native.c
 	$CC $CFLAGS $LDFLAGS -o mdm_helper_native "$srcdir"/mdm_helper_native.c
 	$CC $CFLAGS $LDFLAGS -o mhi_efs_sync "$srcdir"/mhi_efs_sync.c
+	# DIAG reader: the only way to see what the modem itself thinks.
+	$CC $CFLAGS $LDFLAGS -o diag_reader "$srcdir"/diag_reader.c
+	# The same, for the ADSP: it speaks DIAG over three glink channels that
+	# nothing else opens, and it is the one agent in the call-audio path
+	# whose reasoning has never been observed. Needs CONFIG_RPMSG_CTRL.
+	$CC $CFLAGS $LDFLAGS -o adsp_diag "$srcdir"/adsp_diag.c
 }
 
 package() {
 	install -Dm755 pm_service_native "$pkgdir"/usr/bin/pm_service_native
 	install -Dm755 mdm_helper_native "$pkgdir"/usr/bin/mdm_helper_native
 	install -Dm755 mhi_efs_sync "$pkgdir"/usr/bin/mhi_efs_sync
+	install -Dm755 diag_reader "$pkgdir"/usr/bin/diag_reader
+	install -Dm755 adsp_diag "$pkgdir"/usr/bin/adsp_diag
 
 	install -Dm644 "$srcdir"/pm-service-native.service \
 		"$pkgdir"/usr/lib/systemd/system/pm-service-native.service
@@ -50,6 +61,8 @@ package() {
 		"$pkgdir"/usr/lib/systemd/system/mdm-helper-native.service
 	install -Dm644 "$srcdir"/mhi-efs-sync.service \
 		"$pkgdir"/usr/lib/systemd/system/mhi-efs-sync.service
+	install -Dm644 "$srcdir"/adsp-diag.service \
+		"$pkgdir"/usr/lib/systemd/system/adsp-diag.service
 
 	install -Dm644 "$srcdir"/90-apollo-modem-tools.preset \
 		"$pkgdir"/usr/lib/systemd/system-preset/90-apollo-modem-tools.preset
@@ -58,7 +71,12 @@ package() {
 sha512sums="
 461490e2f8df52950ead711e7e5d09440872ef9ebcb7c324ef1f025824a8b964bfb2b7fadcba633e327c75a294ae8eb381eea198937daab7de721d9d96395cce  pm_service_native.c
 1022b00fffcf326b987dd0f1825e18cda1be812af0a1d2d2db4ef02d4538a68a6e0ea52fecc717ebf776ff9d0f32b0f149a554b9536c8f01c9808de9f7676806  mdm_helper_native.c
+61b09274581f4bc03fbbda29c36209c0f90b1291be703a3fe5dad377b6d7efe043ccffcf6ecbc85e45736842b6109ecb8e559491e56381637af88527180f7250  mhi_efs_sync.c
+68aab4162d32eb9566fc726bd0b39083700e64afda6363e894ca01b4134728b9bdc3a5a34be34fe255e925061ae7d1c352bf8b1ec10dabe60cc6aa5c178677ad  diag_reader.c
+e8f10fd20c8a77902e502cc4f7502a38beb8c952045275d8973f0151c76472b0639b1669cd1adfc4e3eccdc00c1cc704cd90e7656512e4fd7bb7440d6872c587  adsp_diag.c
 ed09304d08649c3a67926806f76c8cc6c19af5eaf75289cb331e90e6387900c597c4fac80c6f2b0960f38574fbc145938ab7c39cd86359b1a548063a992bc6c6  pm-service-native.service
 53267ff5cc8fbedba959f20b9d074935ab5814d1d01015c2a4c205b84c315c5af581e6ee8d7b4d06d53c6bf56cac51a261d4f49b73f2f57c0c1bc767aa1de411  mdm-helper-native.service
-83c4169bf38cd9e1d28b98f8646eb3e10448f590f7854c7503992e1e4b3bd038e0e2e150de668a446734a754424ac1ea531cd8d36603a76251a07fa358c9cd7f  90-apollo-modem-tools.preset
+219c85c0a3c83ba4c2ba678ebb76428b2980226df4a2b8606ee19f340f453d2eabde59405c224a1fc4d26d3e1f9b02a9e5facf4d657bccdda5747e03bcb251b5  mhi-efs-sync.service
+fe0af68f9bc55246a48dd1e6c74dd6a347da3e33e679568ae4b8a2d77fe166add0b698eac6b9242d6cb4665650952c3964319830c7a769ebf66d71de0e1d7b5d  adsp-diag.service
+0decff2c4b2f8958b9325c15dd446d9b745e6b28f22588a4f7533bf132514992b486589dc53474dda71aa389dfd2217cc5c3e731f1b1365a64cc186b2b34c6b7  90-apollo-modem-tools.preset
 "

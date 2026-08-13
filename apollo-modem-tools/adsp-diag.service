@@ -1,0 +1,27 @@
+[Unit]
+Description=ADSP F3 debug log capture
+# The ADSP announces its diag feature mask exactly once, the first time a host
+# registers as the diag CNTL server after the ADSP boots. Miss that and there
+# is no way to ask it again short of restarting the audio PD -- deregistering
+# and re-registering does not make it re-announce. So this has to be running
+# before anything else claims the service, which in practice means from boot.
+#
+# QRTR must be up; the ADSP is node 5 and publishes its command port there.
+After=systemd-udevd.service network.target
+Wants=systemd-udevd.service
+
+[Service]
+Type=simple
+# Wait for the ADSP's diag command server to exist rather than racing it. It
+# appears with the ADSP itself, well before the modem finishes booting.
+ExecStartPre=/bin/sh -c 'for i in $(seq 1 120); do [ -d /sys/class/net ] && sleep 1 && exit 0; done'
+ExecStart=/usr/bin/adsp_diag --raw
+Restart=always
+RestartSec=5
+# Its own file rather than the journal: a capture across a call is thousands of
+# lines and is read with grep afterwards, the same way diag-boot.log is used.
+StandardOutput=append:/var/log/adsp-diag.log
+StandardError=append:/var/log/adsp-diag.log
+
+[Install]
+WantedBy=multi-user.target
