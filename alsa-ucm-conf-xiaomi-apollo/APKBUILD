@@ -1,7 +1,7 @@
 # Maintainer: royka1 <roykaandorp@gmail.com>
 pkgname=alsa-ucm-conf-xiaomi-apollo
 pkgver=1.0
-pkgrel=5
+pkgrel=6
 pkgdesc="ALSA UCM configuration for the Xiaomi Mi 10T / 10T Pro (apollo)"
 url="https://github.com/royka1/Xiaomi-Apollo-pmOS-packages"
 arch="noarch"
@@ -10,6 +10,7 @@ depends="alsa-ucm-conf"
 options="!check"
 source="
 	HiFi.conf
+	VoiceCall.conf
 	Xiaomi-Mi-10T.conf
 "
 
@@ -17,6 +18,7 @@ package() {
 	local ucm="$pkgdir"/usr/share/alsa/ucm2
 
 	install -Dm644 "$srcdir"/HiFi.conf "$ucm"/Xiaomi-Mi-10T/HiFi.conf
+	install -Dm644 "$srcdir"/VoiceCall.conf "$ucm"/Xiaomi-Mi-10T/VoiceCall.conf
 	install -Dm644 "$srcdir"/Xiaomi-Mi-10T.conf "$ucm/Xiaomi-Mi-10T/Xiaomi Mi 10T.conf"
 
 	# alsa-lib looks the card up under conf.d/<driver>/. The card reports
@@ -28,6 +30,7 @@ package() {
 }
 
 sha512sums="
-a67632c6a6e8b6711d24392ae544ac51a68d683f76b7e6b02a162cfc6c53f63d4a01c09ca1f1ac66ad99f901938ce8f603d31cab11cd57870895c2fea66145d9  HiFi.conf
-7e6f362051b1d7e876556f7e2aae031675b0bd536b62463666d0d7914457c5f141f1fdec395cb54d7af23fcf2f14aae0e039fda97f0338d8467067b85c8b2a85  Xiaomi-Mi-10T.conf
+c40cc85a0cc22eb221190dfd2bfa5e87bd787219648b5b9cb0ba5d75bbda248592eda3afb684ea86f0322eeaaf82f56609adacfccdfa3f2258811c0c84bdcca0  HiFi.conf
+b8c5b627013fe6feca9a5d52663b1e794009b922bdb632ec0f76194e901a2bd3556ed23ac137b1be40b6c0459b556d674f98341106948018669a818c5c20b3c0  VoiceCall.conf
+02d46720108dc4938c12551519f7c29128f8e002c54f787dfa82d0c05f65759a8b12cddf2289c7b7bbbdc39e8584bdcd70a3f2f96ee5b13376cb75b5ff88d66a  Xiaomi-Mi-10T.conf
 "
