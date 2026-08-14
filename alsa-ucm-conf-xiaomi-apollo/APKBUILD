@@ -1,7 +1,7 @@
 # Maintainer: royka1 <roykaandorp@gmail.com>
 pkgname=alsa-ucm-conf-xiaomi-apollo
 pkgver=1.0
-pkgrel=7
+pkgrel=8
 pkgdesc="ALSA UCM configuration for the Xiaomi Mi 10T / 10T Pro (apollo)"
 url="https://github.com/royka1/Xiaomi-Apollo-pmOS-packages"
 arch="noarch"
@@ -30,7 +30,7 @@ package() {
 }
 
 sha512sums="
-5a8f7fdb986bbe87af29a9e9bd5db96a1e4d9169d60b8b8af2ba131b1742c3f688ec1aacf2cd33567f2cd3e1c52a21c9350f52aa203aa488a239be8248c317df  HiFi.conf
-937c9276841aff5f5976b26d1cbe6798572a38083c27e53befa9318d6ce93d26f8d6d1394d79ef7d4c4dd7f34d9742f0c303d99ef51219fe9823846cd6d89c83  VoiceCall.conf
+d99d965262d2d2cfd3fe48fa9af07466c7f10ec4004d5bda0a737388ce5aff5e4d0b680fad694a328ecb1e3650edf776b36cf8e14663beb6926f2c97e48b2682  HiFi.conf
+2fa9ad5a9e56af30cc75ab26c15ec416690225df9b79e34d62dc3cec33aed89957dbcce9774729b7066311cd32a69f1b33075b6105e6f3e83d9730202d05003b  VoiceCall.conf
 02d46720108dc4938c12551519f7c29128f8e002c54f787dfa82d0c05f65759a8b12cddf2289c7b7bbbdc39e8584bdcd70a3f2f96ee5b13376cb75b5ff88d66a  Xiaomi-Mi-10T.conf
 "
