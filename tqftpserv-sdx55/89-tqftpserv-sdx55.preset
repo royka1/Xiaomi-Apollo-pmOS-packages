@@ -1,0 +1,4 @@
+# Upstream tqftpserv publishes QRTR instance 1; the PCIe-attached SDX55 looks
+# up instance 3, so the two must not both run.
+enable tqftpserv-sdx55.service
+disable tqftpserv.service

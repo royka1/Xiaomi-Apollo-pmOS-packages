@@ -1,7 +1,7 @@
 # Maintainer: royka1 <roykaandorp@gmail.com>
 pkgname=apollo-modem-support
 pkgver=1.0
-pkgrel=5
+pkgrel=7
 pkgdesc="Glue needed to make the external SDX55 modem work on the Xiaomi Mi 10T (apollo)"
 url="https://github.com/royka1/Xiaomi-Apollo-pmOS-packages"
 arch="noarch"
@@ -19,6 +19,7 @@ source="
 	apollo-uim-provision
 	apollo-uim-provision.service
 	apollo-pin-packages
+	apollo-pin-packages.service
 	90-apollo-modem-support.preset
 	77-mm-ignore-sdx55-efs.rules
 	77-mm-sdx55-fusion.rules
@@ -59,6 +60,8 @@ package() {
 	# Keep apk upgrade from swapping out the custom kernel or the
 	# patched ModemManager.
 	install -Dm755 "$srcdir"/apollo-pin-packages "$pkgdir"/usr/bin/apollo-pin-packages
+	install -Dm644 "$srcdir"/apollo-pin-packages.service \
+		"$pkgdir"/usr/lib/systemd/system/apollo-pin-packages.service
 
 	install -Dm755 "$srcdir"/apollo-uim-provision "$pkgdir"/usr/bin/apollo-uim-provision
 	install -Dm644 "$srcdir"/apollo-uim-provision.service \
@@ -88,8 +91,9 @@ c78a2a4bf6660a7ff49a8149e721e0195bda6cd400d20005466d9e918212590c700ec9c20a0edf4d
 97f65b7e8bd1a1a509b7694710ada9120188f270ba4c22a50147697857fa06fb8f82bc0a3c18a434b72257028e0a075998f4cfbc3d1acefc6c814561b824fe16  10-apollo-no-suspend.conf
 a22d31eacccf8241a61429a70c44fb42bd864cb7c8bbfa420948b472e6ad2a098478c9ad108e566c0d627c3d5018a68f0402635e4645b3344b9645b2a6d2deed  apollo-uim-provision
 99d99244f17c370aaedf9e081edbd997319401876af29b498f25ef07979b32001dc86b6a3c5206fabaecf2a518022cc40f8b207a593837e8dd338a4fd8dafe6e  apollo-uim-provision.service
-9d5c7ac99cb55c6723214abdec51a870c655661b5bcbe0d9db9653c2b7176e9fd0a3113aede311e48b18e9628a7051a0dfd400875275e7f84b00d1bd922be102  apollo-pin-packages
-e95cf681f0d074e9599c67cc656f5cf6a4359f43e00226aa5b09ca9aa9a6c1b641bcb74d7e2e0c4f3e9d6282a53bfe43ea74f8fd44d0a98fc351d357548125e0  90-apollo-modem-support.preset
+49603a4c6cadd6dc2cfd8a3a593a5b0e81dc5be9fe19d0694a8d5bf950baca99d242c703b49634259fdcd28dba4802efb1bfc0b42c8b9b8da51e8e4744625fad  apollo-pin-packages
+8c71471959d8a7b4e7fda40dd373bf7ceedfe6318ea7d0922f83d9712b276a71509bffe59d223a6b73d717b7894fe354158724785ee25c2bcc0641a727f124bf  apollo-pin-packages.service
+cb849de90090c386a2beda29e7dc450d34f51981e38efb557904160c10076bf56b726cf47d6941c6e26e1bd199aead870897deb0d0a501e97a79f5944a1c7dc5  90-apollo-modem-support.preset
 ba8b492299eb0fd166a883f74f3935642d487e8b3778c4c0fe3dd4bc8b423d506cb4efbd702786808d94bc209122fdbee304f59d68fc7665216c0cb52995586e  77-mm-ignore-sdx55-efs.rules
 c02b119bf56635398483c980e89358d20f9bfeec9f87354a95a88ac1615e2267fc5e437e9d87ea300d3e974638cb464e16955dea5fda29d5b177e5948e32f439  77-mm-sdx55-fusion.rules
 d0e8f2e378130130ac72703aed957f7638e2dd75acf4aa421e1b4592c6cb6d296b652db0d9c242be4e56326760ce18d28c1e36ae553d0b7a7f91e12ab0353f22  81-libssc-xiaomi-apollo.rules

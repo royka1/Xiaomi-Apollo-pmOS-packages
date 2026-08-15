@@ -29,8 +29,13 @@ set -eu
 
 PKGS="linux-postmarketos-qcom-sm8250 modemmanager"
 
+# apk 3 dropped the version from `apk info -v` -- it prints the description and
+# a pile of mirror warnings instead, so the old parse returned nothing and this
+# script quietly skipped every package while reporting success. `apk list -I`
+# still prints "<name>-<version> <arch> ...".
 installed_version() {
-	apk info -v "$1" 2>/dev/null | grep "^$1-" | head -1 | sed "s/^$1-//"
+	apk list -I "$1" 2>/dev/null |
+		awk -v n="$1" '$1 ~ "^" n "-[0-9]" { sub("^" n "-", "", $1); print $1; exit }'
 }
 
 action="${1:-pin}"

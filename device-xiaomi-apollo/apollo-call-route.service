@@ -1,0 +1,12 @@
+[Unit]
+Description=Route call audio to the earpiece on Xiaomi Mi 10T
+After=q6voiced.service
+Wants=q6voiced.service
+
+[Service]
+ExecStart=/usr/bin/apollo-call-route
+Restart=always
+RestartSec=1
+
+[Install]
+WantedBy=multi-user.target

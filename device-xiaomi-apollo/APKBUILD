@@ -1,0 +1,62 @@
+# Reference: <https://postmarketos.org/devicepkg>
+maintainer="royka1 <roykaandorp@gmail.com>"
+pkgname=device-xiaomi-apollo
+pkgdesc="Xiaomi Mi 10T / 10T Pro"
+pkgver=4
+pkgrel=0
+url="https://postmarketos.org"
+license="MIT"
+arch="aarch64"
+options="!check !archcheck"
+depends="
+	linux-postmarketos-qcom-sm8250
+	mkbootimg
+	postmarketos-base
+	bootmac
+	hexagonrpcd
+	hexagonrpcd-apollo
+	soc-qcom
+	soc-qcom-qbootctl
+	firmware-xiaomi-apollo
+	firmware-xiaomi-apollo-sensors
+	firmware-xiaomi-apollo-modem
+	firmware-xiaomi-apollo-dsp
+	firmware-xiaomi-apollo-audio
+	alsa-ucm-conf-xiaomi-apollo
+	apollo-modem-support
+	apollo-modem-tools
+	tqftpserv-sdx55
+	rmtfs
+	pd-mapper
+	alsa-utils
+	linux-firmware-ath11k
+	linux-firmware-qca
+	modemmanager
+"
+makedepends="devicepkg-dev"
+source="
+	deviceinfo
+	modules-initfs
+	apollo-call-route
+	apollo-call-route.service
+"
+
+build() {
+	devicepkg_build $startdir $pkgname
+}
+
+package() {
+	devicepkg_package $startdir $pkgname
+
+	install -Dm755 "$srcdir"/apollo-call-route \
+		"$pkgdir"/usr/bin/apollo-call-route
+	install -Dm644 "$srcdir"/apollo-call-route.service \
+		"$pkgdir"/usr/lib/systemd/system/apollo-call-route.service
+}
+
+sha512sums="
+672ac945f7c6a904fd4a83465d7319f7e214cba665c02b63d0cc6da7a9207da8b951abce85fc54afe3f9460eb32c2463fffd723d0a0806737db8664001612f0e  deviceinfo
+514de5c7686457c665e4e8218a196882e7d69b44287474494c3d17d5e60e14a29af5e992d966728bef2d46a771e07f34a892c9e372c651ba340b1b6bbae341f4  modules-initfs
+a7182975b65503b0d12b57499804b21c3c84ecf0aecc5b0aef2e018722ced0afe1f774589339aa059aa8c50a731bfdd793c15e95ca966eab3280d03dcf465b7d  apollo-call-route
+8b899801fab61ccefc62ee125277f211cd320e7cba49132440261cbbbffebda690b25ffb14ad1e927ed58bffb41edb081471265782b756b9647344296aef6e52  apollo-call-route.service
+"

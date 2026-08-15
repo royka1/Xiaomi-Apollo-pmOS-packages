@@ -1,0 +1,43 @@
+#!/bin/sh
+# Route call audio to the earpiece for as long as a call is up.
+#
+# Nothing in userspace can do this on its own. Call audio is mixed inside the
+# ADSP and never passes through PipeWire, so there is no stream to move, and
+# callaudiod's fallback -- switching the sink's output port -- has nothing to
+# switch either: every UCM device lands in a profile of its own with a single
+# port, so the earpiece port is never on the sink that is currently open.
+#
+# What does track a call exactly is q6voiced, which holds the CS-VOICE front
+# end open for the call's duration. Both directions are watched: it opens the
+# playback and the capture side, and either one being up means a call.
+#
+# Only transitions are acted on, so picking the speakerphone during a call
+# stays picked until the call ends.
+
+CARD=X10T
+CTL="Speaker Playback Switch"
+P=/proc/asound/card0/pcm3p/sub0/status
+C=/proc/asound/card0/pcm3c/sub0/status
+
+prev=
+while :; do
+	sp=$(cat "$P" 2>/dev/null)
+	sc=$(cat "$C" 2>/dev/null)
+
+	if [ "$sp" = "closed" ] && [ "$sc" = "closed" ]; then
+		now=idle
+	else
+		now=call
+	fi
+
+	if [ "$now" != "$prev" ]; then
+		case $now in
+		call)	amixer -q -c "$CARD" cset name="$CTL" 0 ;;
+		idle)	amixer -q -c "$CARD" cset name="$CTL" 1 ;;
+		esac
+		echo "call-route: $prev -> $now (playback='$sp' capture='$sc')"
+		prev=$now
+	fi
+
+	sleep 1
+done

@@ -1,0 +1,22 @@
+# Maintainer: royka1 <roykaandorp@gmail.com>
+pkgname=firmware-xiaomi-apollo-dsp
+pkgver=1.0
+pkgrel=0
+pkgdesc="IPA and DSP firmware for the Xiaomi Mi 10T (apollo)"
+url="https://postmarketos.org"
+arch="aarch64"
+license="proprietary"
+options="!check !strip !archcheck !spdx !tracedeps textrels pmb:cross-native"
+source="apollo-dsp-fw-$pkgver.tar.gz"
+
+# /lib/firmware/sm8250/xiaomi/apollo: ipa_fws (the IPA microcontroller, which
+# the modem's data path needs) plus the SLPI's per-device calibration. Without
+# it IPA never initialises and the SLPI crash-loops around 25 times a minute,
+# which is enough to destabilise the whole system.
+package() {
+	install -d "$pkgdir"/usr/lib/firmware
+	cp -a "$srcdir"/sm8250 "$pkgdir"/usr/lib/firmware/
+}
+sha512sums="
+8c00a497f5d7a0d708109dd311505f3807b6cf45ad143f8f7fcf76c07a1a5c4d1e607eb4afd3f29b98e0d0ba8c5612c35c0d17c3bf4bf35f4ea7fa6a508f8874  apollo-dsp-fw-1.0.tar.gz
+"

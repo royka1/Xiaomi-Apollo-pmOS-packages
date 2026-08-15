@@ -5,3 +5,11 @@ enable apollo-uim-provision.service
 
 # ModemManager starts before the modem exists; this looks again once it does.
 enable ModemManager-restart-once.service
+
+# Keep the locally built kernel and ModemManager from being replaced by an
+# `apk upgrade`; runs once, then stamps itself done.
+enable apollo-pin-packages.service
+
+# Never enable this one: it probes qrtr://0 while this modem is node 3, fails,
+# and because it is RequiredBy=ModemManager.service it blocks ModemManager.
+disable msm-modem-uim-selection.service

@@ -1,0 +1,32 @@
+[Unit]
+Description=First-boot fixups for the Apollo modem
+Documentation=man:apk(8)
+# Runs once, after everything is installed -- which a post-install cannot rely
+# on, since package order is not guaranteed.
+ConditionPathExists=!/var/lib/apollo-pin-packages.done
+After=local-fs.target
+Before=ModemManager.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+
+# msm-modem-uim-selection declares RequiredBy=ModemManager.service, so enabling
+# it makes ModemManager a hard dependent. On this board it always fails -- it
+# talks to qrtr://0 while the PCIe-attached SDX55 is node 3 -- and takes
+# ModemManager down with it, leaving a modem that is up on QRTR but invisible
+# to userspace. apollo-uim-provision.service does this job properly.
+#
+# It has to be *disabled*, not masked: disabling removes the .requires symlink,
+# whereas a masked unit still fails the dependency.
+ExecStart=-/usr/bin/systemctl disable --now msm-modem-uim-selection.service
+
+# Keep the locally built kernel and ModemManager from being replaced by an
+# `apk upgrade`. Both share a name with a repository package: the kernel would
+# lose its module tree and DTB, ModemManager the patches mobile data needs.
+ExecStart=-/usr/bin/apollo-pin-packages
+
+ExecStart=/bin/sh -c 'mkdir -p /var/lib && : > /var/lib/apollo-pin-packages.done'
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,27 @@
+# Maintainer: royka1 <roykaandorp@gmail.com>
+pkgname=firmware-xiaomi-apollo-modem
+pkgver=1.0
+pkgrel=0
+pkgdesc="SDX55 modem firmware for the Xiaomi Mi 10T (apollo)"
+url="https://postmarketos.org"
+arch="aarch64"
+license="proprietary"
+options="!check !strip !archcheck !spdx !tracedeps !textrels pmb:cross-native"
+source="apollo-modem-fw-$pkgver.tar.gz"
+
+# Sahara looks in /lib/firmware/sdx55m, not the qcom/ subdirectory: the loader
+# takes the path from the MHI device name. Without these the SDX55 never leaves
+# SBL.
+#
+# efs{1,2,3}.bin are deliberately NOT here. They carry the IMEI, the RF
+# calibration and the subscriber state, so they are per-device and cannot be
+# shipped; apollo-efs-extract copies them out of the phone's own partitions on
+# first boot. With dummy NV instead, the modem reaches mission mode and then
+# ERRFATALs about 15 seconds in.
+package() {
+	install -d "$pkgdir"/usr/lib/firmware
+	cp -a "$srcdir"/sdx55m "$pkgdir"/usr/lib/firmware/
+}
+sha512sums="
+a753d42a5181cfa2ea583b9e7ae7d00e2dc163c815ef43e7ac6566c6bfef9f58fb1055b91fa12c444a96de3e31440c86197604254b0c521b2e5abe04a0a6b4a7  apollo-modem-fw-1.0.tar.gz
+"

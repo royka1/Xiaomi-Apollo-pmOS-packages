@@ -1,0 +1,24 @@
+# Maintainer: royka1 <roykaandorp@gmail.com>
+pkgname=firmware-xiaomi-apollo-audio
+pkgver=1.0
+pkgrel=0
+pkgdesc="Voice calibration for the Xiaomi Mi 10T (apollo)"
+url="https://postmarketos.org"
+arch="aarch64"
+license="proprietary"
+options="!check !strip !archcheck !spdx !tracedeps !textrels pmb:cross-native"
+source="apollo-voice-cal-$pkgver.tar.gz"
+
+# Extracted from the board's ACDB database with tools/remoteproc/acdb_voice_cal.py.
+#
+# The ADSP will not resolve a volume step until the vocproc calibration has been
+# registered, so without these a call comes up fully configured and silent. The
+# topology blob is ACDB global property 0x132ac, sent verbatim; the vocproc
+# topology ids the vendor uses do not exist for the DSP until it is registered.
+package() {
+	install -d "$pkgdir"/usr/lib/firmware/qcom
+	cp -a "$srcdir"/qcom/* "$pkgdir"/usr/lib/firmware/qcom/
+}
+sha512sums="
+e410b0ec73f23ea4afc4f3ad6301d544d691b14564dfae4283386c39fdbced3dfee2f6b0fe9503cb0b112d34ee7032d07947055e5b826bb478d115429020a652  apollo-voice-cal-1.0.tar.gz
+"

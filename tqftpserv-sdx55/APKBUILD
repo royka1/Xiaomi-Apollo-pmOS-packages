@@ -1,7 +1,7 @@
 # Maintainer: royka1 <roykaandorp@gmail.com>
 pkgname=tqftpserv-sdx55
 pkgver=1.0
-pkgrel=0
+pkgrel=2
 pkgdesc="TFTP/RFS server over QRTR, patched for the PCIe-attached SDX55 (apollo)"
 url="https://github.com/royka1/Xiaomi-Apollo-pmOS-packages"
 arch="aarch64"
@@ -20,7 +20,7 @@ source="
 	translate.h
 	zstd-decompress.h
 	tqftpserv-sdx55.service
-	90-tqftpserv-sdx55.preset
+	89-tqftpserv-sdx55.preset
 "
 
 # Two changes against upstream tqftpserv, both genuine upstream bugs:
@@ -51,8 +51,15 @@ package() {
 	install -Dm644 "$srcdir"/tqftpserv-sdx55.service \
 		"$pkgdir"/usr/lib/systemd/system/tqftpserv-sdx55.service
 
-	install -Dm644 "$srcdir"/90-tqftpserv-sdx55.preset \
-		"$pkgdir"/usr/lib/systemd/system-preset/90-tqftpserv-sdx55.preset
+	install -Dm644 "$srcdir"/89-tqftpserv-sdx55.preset \
+		"$pkgdir"/usr/lib/systemd/system-preset/89-tqftpserv-sdx55.preset
+
+	# Mask the stock unit rather than relying on the preset. Presets only
+	# apply to units that are not already enabled, and tqftpserv-systemd
+	# runs its own preset first -- 90-base.preset enables tqftpserv, which
+	# sorts before anything we can ship. A mask wins regardless of order.
+	install -d "$pkgdir"/etc/systemd/system
+	ln -sf /dev/null "$pkgdir"/etc/systemd/system/tqftpserv.service
 }
 
 sha512sums="
@@ -63,5 +70,5 @@ defa4e8d50e8a0399ef4755930ceafaf3d452783d64d82fb31362b6082899303ac87e69cc194d9aa
 9569d52a1f792da52b0e0bd396c62f4bc0303b7a760e8e687ff9c19f0f0eb4858ce79790db2cb0300ef6d4aae5872a6d4d66be7fded574d5db3f437dbf49678e  translate.h
 dc4e5063f76c64789380f4ac0ee88919a028d923427c59b36e4232c0a00eedd39cc7d259127677d1a89f213508ebffae3b507c7e1d32274608b73f59ae018d83  zstd-decompress.h
 7f01885423ff28811bfcd9982da1e5164b9ff174f3e1b4b566512007b290a1fbcacec538e8552896123e7030fb53603ecc437450c5c39037763bcbba9d6aa722  tqftpserv-sdx55.service
-939ffc652e02b3b81d14fb2298b2f1883904fe083a5131dda1c49ea79def11ac62956657af2b27b616202584afa1521187e723994722dd4ec657d009ff56386f  90-tqftpserv-sdx55.preset
+939ffc652e02b3b81d14fb2298b2f1883904fe083a5131dda1c49ea79def11ac62956657af2b27b616202584afa1521187e723994722dd4ec657d009ff56386f  89-tqftpserv-sdx55.preset
 "
