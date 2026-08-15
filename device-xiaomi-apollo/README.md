@@ -24,24 +24,34 @@ First clone the fork, and let it finish:
 
     git -C ~/pmaports-apollo remote add upstream \
         https://gitlab.postmarketos.org/postmarketOS/pmaports.git
-    git -C ~/pmaports-apollo fetch upstream master
+    git -C ~/pmaports-apollo fetch upstream
 
-Without this, pmbootstrap fails immediately with
+Without the remote, pmbootstrap fails immediately with
 
     pmaports: could not find remote name for any URL
     '['https://gitlab.postmarketos.org/postmarketOS/pmaports.git', ...]'
 
 It identifies which remote is upstream by matching remote URLs against the
-official address, and a clone of a fork has no remote that matches. The fetch
-is needed as well as the remote, because what pmbootstrap actually wants is
-`git show <remote>/master:channels.cfg` -- it reads the channel definitions
-from upstream's master, never from this fork -- and that needs the
-`upstream/master` tracking ref to exist locally.
+official address, and a clone of a fork has no remote that matches.
 
-The remote is only consulted for channels and for update checks; the tree still
-builds from the fork's `main`. Do not run `pmbootstrap pull` on this checkout,
-which would try to fast-forward onto upstream. Update with
-`git -C ~/pmaports-apollo pull origin main` instead.
+Fetch the whole remote, not one branch. pmbootstrap reads the channel
+definitions with `git show <remote>/<branch>:channels.cfg` -- from *upstream*,
+never from this fork -- and which branch that is depends on the pmbootstrap
+version: 3.9 reads `master`, 3.11 reads `main`. Fetching everything satisfies
+both. Miss it and the error moves on to
+
+    Failed to read channels.cfg from 'upstream/main' branch of your local
+    pmaports clone
+
+The remote is only consulted for channels and update checks; the tree still
+builds from the fork's `main`, which is the branch `channels.cfg` maps the
+`edge` channel to.
+
+`pmbootstrap pull` will refuse this checkout -- "is tracking unexpected remote
+branch 'origin/main' instead of 'upstream/main'". That is correct and harmless:
+it is declining to fast-forward the fork onto upstream. Update with
+
+    git -C ~/pmaports-apollo pull origin main
 
 Then start the wizard on its own and answer its questions:
 
