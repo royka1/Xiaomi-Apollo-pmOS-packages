@@ -20,6 +20,29 @@ First clone the fork, and let it finish:
 
     git clone https://gitlab.postmarketos.org/royka1/pmaports.git ~/pmaports-apollo
 
+**Then give it a remote pointing at official pmaports, and fetch that remote:**
+
+    git -C ~/pmaports-apollo remote add upstream \
+        https://gitlab.postmarketos.org/postmarketOS/pmaports.git
+    git -C ~/pmaports-apollo fetch upstream master
+
+Without this, pmbootstrap fails immediately with
+
+    pmaports: could not find remote name for any URL
+    '['https://gitlab.postmarketos.org/postmarketOS/pmaports.git', ...]'
+
+It identifies which remote is upstream by matching remote URLs against the
+official address, and a clone of a fork has no remote that matches. The fetch
+is needed as well as the remote, because what pmbootstrap actually wants is
+`git show <remote>/master:channels.cfg` -- it reads the channel definitions
+from upstream's master, never from this fork -- and that needs the
+`upstream/master` tracking ref to exist locally.
+
+The remote is only consulted for channels and for update checks; the tree still
+builds from the fork's `main`. Do not run `pmbootstrap pull` on this checkout,
+which would try to fast-forward onto upstream. Update with
+`git -C ~/pmaports-apollo pull origin main` instead.
+
 Then start the wizard on its own and answer its questions:
 
     pmbootstrap init
