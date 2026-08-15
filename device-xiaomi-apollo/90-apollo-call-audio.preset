@@ -1,0 +1,4 @@
+# Both are shipped by device-xiaomi-apollo and neither is pulled in by anything
+# else, so without this they install and never run.
+enable apollo-voice-topology.service
+enable apollo-call-route.service

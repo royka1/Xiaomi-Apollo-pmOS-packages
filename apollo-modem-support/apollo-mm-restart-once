@@ -1,24 +1,41 @@
 #!/bin/sh
-# Give the modem time to appear, and restart ModemManager once if it did not.
+# Give the modem time to appear, and restart ModemManager until it does.
 #
 # The modem is not present when ModemManager starts, and it can disappear again
 # afterwards: this modem takes an error fatal and recovers on its own, which is
 # normal for it. ModemManager gives up on a port that stops answering, so a
-# single nudge once the modem is actually there is worth more than waiting for
-# it to notice by itself.
+# nudge once the modem is actually there is worth more than waiting for it to
+# notice by itself.
+#
+# One nudge is not enough. The SDX55 publishes its QMI services well after the
+# link reaches mission mode -- how long varies with what it has to read over
+# RFS first -- and ModemManager marks the port invalid after ten timeouts. A
+# single restart at a fixed 30s regularly lands before node 3 is answering, and
+# then nothing tries again and the phone has no modem until someone restarts it
+# by hand. So keep nudging until a modem shows up.
 set -u
 
 WAIT=${APOLLO_MM_WAIT:-30}
+TRIES=${APOLLO_MM_TRIES:-8}
+EVERY=${APOLLO_MM_EVERY:-20}
 
 sleep "$WAIT"
 
-if mmcli -L 2>/dev/null | grep -q "/Modem/"; then
-	echo "apollo-mm-restart-once: modem already present, nothing to do"
-	exit 0
-fi
+i=0
+while [ "$i" -lt "$TRIES" ]; do
+	if mmcli -L 2>/dev/null | grep -q "/Modem/"; then
+		if [ "$i" -eq 0 ]; then
+			echo "apollo-mm-restart-once: modem present after ${WAIT}s"
+		else
+			echo "apollo-mm-restart-once: modem appeared after $i restart(s)"
+		fi
+		exit 0
+	fi
 
-echo "apollo-mm-restart-once: no modem after ${WAIT}s, restarting ModemManager"
-systemctl restart ModemManager || exit 0
+	i=$((i + 1))
+	echo "apollo-mm-restart-once: no modem, restarting ModemManager ($i/$TRIES)"
+	systemctl restart ModemManager || exit 0
+	sleep "$EVERY"
+done
 
-sleep 10
-mmcli -L 2>/dev/null || true
+echo "apollo-mm-restart-once: still no modem after $TRIES restarts, giving up"

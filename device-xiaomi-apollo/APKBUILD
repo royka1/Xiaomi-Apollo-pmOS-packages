@@ -2,7 +2,7 @@
 maintainer="royka1 <roykaandorp@gmail.com>"
 pkgname=device-xiaomi-apollo
 pkgdesc="Xiaomi Mi 10T / 10T Pro"
-pkgver=4
+pkgver=5
 pkgrel=0
 url="https://postmarketos.org"
 license="MIT"
@@ -29,6 +29,7 @@ depends="
 	rmtfs
 	pd-mapper
 	alsa-utils
+	q6voiced
 	linux-firmware-ath11k
 	linux-firmware-qca
 	modemmanager
@@ -39,6 +40,9 @@ source="
 	modules-initfs
 	apollo-call-route
 	apollo-call-route.service
+	apollo-voice-topology.service
+	q6voiced.conf
+	90-apollo-call-audio.preset
 "
 
 build() {
@@ -52,6 +56,16 @@ package() {
 		"$pkgdir"/usr/bin/apollo-call-route
 	install -Dm644 "$srcdir"/apollo-call-route.service \
 		"$pkgdir"/usr/lib/systemd/system/apollo-call-route.service
+	install -Dm644 "$srcdir"/apollo-voice-topology.service \
+		"$pkgdir"/usr/lib/systemd/system/apollo-voice-topology.service
+
+	# q6voiced holds the CS-VOICE front end open for the length of a call.
+	# It reads this to find the PCM: card 0, device 3.
+	install -Dm644 "$srcdir"/q6voiced.conf \
+		"$pkgdir"/usr/share/q6voiced/q6voiced.conf
+
+	install -Dm644 "$srcdir"/90-apollo-call-audio.preset \
+		"$pkgdir"/usr/lib/systemd/system-preset/90-apollo-call-audio.preset
 }
 
 sha512sums="
@@ -59,4 +73,7 @@ sha512sums="
 514de5c7686457c665e4e8218a196882e7d69b44287474494c3d17d5e60e14a29af5e992d966728bef2d46a771e07f34a892c9e372c651ba340b1b6bbae341f4  modules-initfs
 a7182975b65503b0d12b57499804b21c3c84ecf0aecc5b0aef2e018722ced0afe1f774589339aa059aa8c50a731bfdd793c15e95ca966eab3280d03dcf465b7d  apollo-call-route
 8b899801fab61ccefc62ee125277f211cd320e7cba49132440261cbbbffebda690b25ffb14ad1e927ed58bffb41edb081471265782b756b9647344296aef6e52  apollo-call-route.service
+9416f40ead8b5abf3adf7a5a45281783a50878b2a7527c1d56c19cbac8aa58f6d4246fdede32865abec66cd4063b603e38e4845689bf18db5baad81856cf16f5  apollo-voice-topology.service
+7f599f086dba97ac39ce98798969bc8e9c26dd3b062bb8f95852182df52814b70d49b701e27b43abeb3639b16ba053e416c14cf75e0bf4a9f2fe7c01fb0ac41c  q6voiced.conf
+860ac8d04b3651366e888ba533fb45db32250705d385e9d3080795c54e63824f3b6c65c09b5f3c502b10033e368420164abd45b70992c94bd2b3cde083612d5c  90-apollo-call-audio.preset
 "

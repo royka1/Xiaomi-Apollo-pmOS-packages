@@ -1,0 +1,23 @@
+[Unit]
+Description=Apollo CVD custom voice topologies
+# q6cvp is built into the kernel, so there is no modprobe.d to carry these and
+# nothing restores them across a reboot. Left at the compiled defaults,
+# bypass_topology forces both directions to TOPOLOGY_ID_NONE and the call is
+# silent.
+#
+# The two directions are deliberately different. Receive uses the board's own
+# custom topology, which only exists once q6core has registered the AVCS blob.
+# Transmit uses NONE: the custom transmit topology 0x1000fffc is the echo
+# cancelling one, and its 16 kHz input tap measures exactly zero on this board,
+# so a call set up with it has a working downlink and a silent uplink.
+After=systemd-modules-load.service
+Before=q6voiced.service
+ConditionPathExists=/sys/module/q6cvp/parameters/bypass_topology
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/bin/sh -ec 'printf N > /sys/module/q6cvp/parameters/bypass_topology; printf 0x00010f70 > /sys/module/q6cvp/parameters/tx_topology; printf 0x1000feee > /sys/module/q6cvp/parameters/rx_topology; printf 1 > /sys/module/q6cvp/parameters/rx_channels'
+
+[Install]
+WantedBy=multi-user.target
