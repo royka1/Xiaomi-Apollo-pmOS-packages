@@ -1,7 +1,7 @@
 # Maintainer: royka1 <roykaandorp@gmail.com>
 pkgname=apollo-modem-support
 pkgver=1.0
-pkgrel=8
+pkgrel=10
 pkgdesc="Glue needed to make the external SDX55 modem work on the Xiaomi Mi 10T (apollo)"
 url="https://github.com/royka1/Xiaomi-Apollo-pmOS-packages"
 arch="noarch"
@@ -15,8 +15,11 @@ source="
 	apollo-mm-restart-once
 	ModemManager-restart-once.service
 	10-apollo-modem-ordering.conf
+	zz-apollo-multiplex.conf
+	rmnet.conf
 	10-apollo-no-suspend.conf
 	10-apollo-ntp-by-ip.conf
+	90-apollo-timesyncd
 	apollo-uim-provision
 	apollo-uim-provision.service
 	apollo-pin-packages
@@ -43,11 +46,19 @@ package() {
 	# ...and make sure it is not started before the modem can answer at all.
 	install -Dm644 "$srcdir"/10-apollo-modem-ordering.conf \
 		"$pkgdir"/usr/lib/systemd/system/ModemManager.service.d/10-apollo-modem-ordering.conf
+	install -Dm644 "$srcdir"/zz-apollo-multiplex.conf \
+		"$pkgdir"/usr/lib/systemd/system/ModemManager.service.d/zz-apollo-multiplex.conf
+
+	# The multiplexed bearer needs the rmnet driver, which nothing else pulls in.
+	install -Dm644 "$srcdir"/rmnet.conf \
+		"$pkgdir"/usr/lib/modules-load.d/rmnet.conf
 
 	install -Dm644 "$srcdir"/10-apollo-no-suspend.conf \
 		"$pkgdir"/usr/lib/systemd/sleep.conf.d/10-apollo-no-suspend.conf
 	install -Dm644 "$srcdir"/10-apollo-ntp-by-ip.conf \
 		"$pkgdir"/usr/lib/systemd/timesyncd.conf.d/10-apollo-ntp-by-ip.conf
+	install -Dm755 "$srcdir"/90-apollo-timesyncd \
+		"$pkgdir"/usr/lib/NetworkManager/dispatcher.d/90-apollo-timesyncd
 
 	# Enable via a systemd preset. Hand-rolled symlinks into
 	# multi-user.target.wants/ fail silently at install time because the
@@ -88,11 +99,14 @@ package() {
 sha512sums="
 55a6411d8b70c078e44a758c5baaf03cd3aea40d6303f4424d2e0ba613c6c2bab9c7ee515d2c9ce53d2a1043b2aca9346a9921300da15d454de430747581d3f6  apollo-efs-extract
 30d9f3b1901eeb0af33cd74e2828baff4353a610e6467fc4334d178b2d915097d0093911ff77aa0a48a26c104fd122e18e867721ff226fc664eb4d5bfb488f1b  apollo-efs-extract.service
-e1c0d552f9b8cb9b191cea66d25a3315e2b7ca022094714b094da15ce000b6068e9a47b51cc8a62050a2f9610a7c1d9ee10f6a0d0c75a48fbba9eae6ed904af0  apollo-mm-restart-once
+655056ea7099bea3da321a8edc25ab69a8c874adf6c3ce2b5bea3783295cf3dfac506c3ceab0121beed5c19ebdf7f1c2a975ba2599eaca4ff1b73b819943d32f  apollo-mm-restart-once
 dafc58f2b420758f5997f5fb627adb0c2a6154ae211af39f2a4e331b5a10c10e99fa42e1789c11031d3baa171d5b9272c28e39ab8762fcdfa852a50d9730f9cb  ModemManager-restart-once.service
 c78a2a4bf6660a7ff49a8149e721e0195bda6cd400d20005466d9e918212590c700ec9c20a0edf4da637ed34fc2e32a64b8302798c19c9f2252d92c5ca803afd  10-apollo-modem-ordering.conf
+3b2d84e9442c6384730c95832ef4c90cd94ca6a6ebe51c8d938bb457908aa783306d052f46320e0c8f75304113e7fea168636e41fa4388668ed252d03c3fbc4d  zz-apollo-multiplex.conf
+d77770f39d6fb8d5b413bce1b9dcbaed46c2969789714fb557dbbe7be3de2328ef75cf595d3965b5b49cb97c37ded7fecc7b2e0df8b37cdda99aa5b2fcbee441  rmnet.conf
 97f65b7e8bd1a1a509b7694710ada9120188f270ba4c22a50147697857fa06fb8f82bc0a3c18a434b72257028e0a075998f4cfbc3d1acefc6c814561b824fe16  10-apollo-no-suspend.conf
 e8280ccd1712a26dbb0dc422af48807069d6c6981650d82725ca50344fe450db0a7447e516cffab0aa42bb514c5703170695609ee548b2c6e1f33352e2947947  10-apollo-ntp-by-ip.conf
+58f51b1ec3cfb108cf69620820c24c868ecea4f81e3cfada8b731969728f9e1e81c684cda8982e27db30a24edfae2352a44a654d5d2b531f6d5ce7b55543539b  90-apollo-timesyncd
 a22d31eacccf8241a61429a70c44fb42bd864cb7c8bbfa420948b472e6ad2a098478c9ad108e566c0d627c3d5018a68f0402635e4645b3344b9645b2a6d2deed  apollo-uim-provision
 99d99244f17c370aaedf9e081edbd997319401876af29b498f25ef07979b32001dc86b6a3c5206fabaecf2a518022cc40f8b207a593837e8dd338a4fd8dafe6e  apollo-uim-provision.service
 49603a4c6cadd6dc2cfd8a3a593a5b0e81dc5be9fe19d0694a8d5bf950baca99d242c703b49634259fdcd28dba4802efb1bfc0b42c8b9b8da51e8e4744625fad  apollo-pin-packages

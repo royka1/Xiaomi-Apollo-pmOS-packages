@@ -1,41 +1,92 @@
 #!/bin/sh
-# Give the modem time to appear, and restart ModemManager until it does.
+# Get the modem to a registered state after boot, and then get out of the way.
 #
-# The modem is not present when ModemManager starts, and it can disappear again
-# afterwards: this modem takes an error fatal and recovers on its own, which is
-# normal for it. ModemManager gives up on a port that stops answering, so a
-# nudge once the modem is actually there is worth more than waiting for it to
-# notice by itself.
+# Two separate things go wrong on this board, both only at startup, and both
+# leave a phone that looks fine and has no service.
 #
-# One nudge is not enough. The SDX55 publishes its QMI services well after the
-# link reaches mission mode -- how long varies with what it has to read over
-# RFS first -- and ModemManager marks the port invalid after ten timeouts. A
-# single restart at a fixed 30s regularly lands before node 3 is answering, and
-# then nothing tries again and the phone has no modem until someone restarts it
-# by hand. So keep nudging until a modem shows up.
+# 1. ModemManager starts before the modem is there. The SDX55 publishes its QMI
+#    services well after the link reaches mission mode -- how long depends on
+#    what it reads over RFS first -- and ModemManager marks a port invalid after
+#    ten timeouts, then never looks again. A restart once the modem is actually
+#    up fixes that, but one restart at a fixed delay regularly lands too early,
+#    so keep trying until a modem appears.
+#
+# 2. Even with the modem present, the first registration attempt can hang in
+#    "searching" indefinitely -- observed for twenty minutes with 83% signal, a
+#    valid SIM and the correct time. Taking the radio down and back up makes it
+#    register within seconds, every time. That is what a user does by toggling
+#    airplane mode; do it for them.
+#
+# Why the first attempt hangs is not understood yet. It is not the clock: it
+# reproduces with the time correct from the first second of boot.
 set -u
 
+# How long the modem takes to appear varies enormously: 30s on one boot and
+# 234s on the next, same image. An earlier version waited 190s and gave up
+# twelve seconds before the modem showed, which looks exactly like a phone with
+# no mobile network. Wait well past the worst seen, and leave longer between
+# restarts than the ~30s ModemManager needs to find it after one.
 WAIT=${APOLLO_MM_WAIT:-30}
-TRIES=${APOLLO_MM_TRIES:-8}
-EVERY=${APOLLO_MM_EVERY:-20}
+TRIES=${APOLLO_MM_TRIES:-10}
+EVERY=${APOLLO_MM_EVERY:-40}
+REG_WAIT=${APOLLO_MM_REG_WAIT:-90}
+REG_TRIES=${APOLLO_MM_REG_TRIES:-3}
+
+modem_index() {
+	mmcli -L 2>/dev/null | grep -oE '/Modem/[0-9]+' | head -1 | sed 's|.*/||'
+}
+
+registration() {
+	mmcli -m "$1" 2>/dev/null | grep -m1 -E '\<registration:' |
+		sed 's/.*registration: *//'
+}
 
 sleep "$WAIT"
 
+# Is there a modem at all?
 i=0
-while [ "$i" -lt "$TRIES" ]; do
-	if mmcli -L 2>/dev/null | grep -q "/Modem/"; then
-		if [ "$i" -eq 0 ]; then
-			echo "apollo-mm-restart-once: modem present after ${WAIT}s"
-		else
-			echo "apollo-mm-restart-once: modem appeared after $i restart(s)"
-		fi
-		exit 0
-	fi
-
+while [ -z "$(modem_index)" ] && [ "$i" -lt "$TRIES" ]; do
 	i=$((i + 1))
 	echo "apollo-mm-restart-once: no modem, restarting ModemManager ($i/$TRIES)"
 	systemctl restart ModemManager || exit 0
 	sleep "$EVERY"
 done
 
-echo "apollo-mm-restart-once: still no modem after $TRIES restarts, giving up"
+m=$(modem_index)
+if [ -z "$m" ]; then
+	echo "apollo-mm-restart-once: still no modem after $TRIES restarts, giving up"
+	exit 0
+fi
+[ "$i" -eq 0 ] && echo "apollo-mm-restart-once: modem $m present after ${WAIT}s" \
+	|| echo "apollo-mm-restart-once: modem $m appeared after $i restart(s)"
+
+# Is it registered?
+j=0
+while [ "$j" -lt "$REG_TRIES" ]; do
+	n=0
+	while [ "$n" -lt "$REG_WAIT" ]; do
+		case "$(registration "$m")" in
+		home | roaming)
+			echo "apollo-mm-restart-once: registered"
+			exit 0
+			;;
+		esac
+		n=$((n + 10))
+		sleep 10
+	done
+
+	j=$((j + 1))
+	echo "apollo-mm-restart-once: not registered after ${REG_WAIT}s, cycling the radio ($j/$REG_TRIES)"
+	mmcli -m "$m" --set-power-state-low >/dev/null 2>&1
+	sleep 5
+	mmcli -m "$m" --set-power-state-on >/dev/null 2>&1
+	sleep 5
+	# Coming back from low power leaves the modem disabled.
+	mmcli -m "$m" --enable >/dev/null 2>&1
+	sleep 5
+
+	m=$(modem_index)
+	[ -n "$m" ] || exit 0
+done
+
+echo "apollo-mm-restart-once: still not registered after $REG_TRIES radio cycles"

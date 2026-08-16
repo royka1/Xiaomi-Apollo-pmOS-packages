@@ -1,0 +1,16 @@
+#!/bin/sh
+# Nudge systemd-timesyncd when a connection comes up.
+#
+# timesyncd learns that the network is usable from systemd-networkd. This image
+# uses NetworkManager, so it learns nothing: the instance started at boot tries
+# once with no route, backs off, and the clock stays at the epoch until someone
+# toggles automatic time by hand. With no writable RTC (RTC_SET_TIME returns
+# ENODEV) that is every boot on a device that has never synced.
+case "$2" in
+up | dhcp4-change | dhcp6-change | connectivity-change)
+	systemctl is-active --quiet systemd-timesyncd || exit 0
+	timedatectl show --property=NTPSynchronized --value 2>/dev/null | grep -qx yes && exit 0
+	systemctl try-restart systemd-timesyncd
+	;;
+esac
+exit 0
