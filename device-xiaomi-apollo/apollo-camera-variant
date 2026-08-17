@@ -1,0 +1,58 @@
+#!/bin/sh
+# Enable the camera-module variant that is actually fitted.
+#
+# The Mi 10T family shares one device tree, but the main camera comes as
+# either the Semco module (S5KHMX + AK7375: global SKU and Pro, the
+# device tree default) or the Sunny module (IMX682 + DW9800: the 64 MP
+# China SKU). The wide module's EEPROM tells them apart: byte 0 is 0x01
+# when the content is valid, byte 1 is the integrator id, 0x03 for Semco
+# and 0x01 for Sunny.
+#
+# A sensor that is described but not fitted would stall the camss async
+# notifier and take every camera down, so exactly one variant may be
+# enabled, and the flip must happen before the cameras are used.
+
+OVERLAY=sm8250-xiaomi-apollo-sunny.dtbo
+
+modprobe at24 2>/dev/null
+
+find_eeprom() {
+	for ee in /sys/bus/i2c/devices/*-0050/eeprom; do
+		[ -r "$ee" ] || continue
+		case "$(readlink "${ee%/eeprom}"/of_node 2>/dev/null)" in
+		*cci@ac4f000*) echo "$ee"; return 0 ;;
+		esac
+	done
+	return 1
+}
+
+# The EEPROM sits on the camera I2C bus; give udev a moment to have
+# loaded the drivers and probed it.
+i=0
+until ee="$(find_eeprom)"; do
+	i=$((i + 1))
+	[ "$i" -ge 20 ] && exit 0
+	sleep 0.5
+done
+
+hdr="$(od -An -N2 -tx1 "$ee" | tr -d ' \n')"
+case "$hdr" in
+0103)
+	# Semco: the device tree default is right.
+	exit 0
+	;;
+01??)
+	# Sunny: flip the wide camera to the IMX682 and DW9800.
+	modprobe overlay_loader
+	echo "$OVERLAY" > /sys/kernel/debug/of_overlay_loader/apply || exit 1
+	# camss parsed the sensor graph before the flip; make the camera
+	# modules re-probe against the new tree.
+	for m in qcom-camss s5khmx ak7375 imx682 dw9807-vcm; do
+		modprobe -r "$m" 2>/dev/null
+	done
+	modprobe qcom-camss
+	modprobe imx682
+	modprobe dw9807-vcm
+	;;
+esac
+exit 0

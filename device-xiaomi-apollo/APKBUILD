@@ -2,7 +2,7 @@
 maintainer="royka1 <roykaandorp@gmail.com>"
 pkgname=device-xiaomi-apollo
 pkgdesc="Xiaomi Mi 10T / 10T Pro"
-pkgver=5
+pkgver=6
 pkgrel=0
 url="https://postmarketos.org"
 license="MIT"
@@ -41,6 +41,8 @@ source="
 	apollo-call-route
 	apollo-call-route.service
 	apollo-voice-topology.service
+	apollo-camera-variant
+	apollo-camera-variant.service
 	q6voiced.conf
 	90-apollo-call-audio.preset
 "
@@ -59,6 +61,13 @@ package() {
 	install -Dm644 "$srcdir"/apollo-voice-topology.service \
 		"$pkgdir"/usr/lib/systemd/system/apollo-voice-topology.service
 
+	# Boot-time selection of the fitted main-camera module (Semco or
+	# Sunny); the Sunny fit is switched in with a device tree overlay.
+	install -Dm755 "$srcdir"/apollo-camera-variant \
+		"$pkgdir"/usr/bin/apollo-camera-variant
+	install -Dm644 "$srcdir"/apollo-camera-variant.service \
+		"$pkgdir"/usr/lib/systemd/system/apollo-camera-variant.service
+
 	# q6voiced holds the CS-VOICE front end open for the length of a call.
 	# It reads this to find the PCM: card 0, device 3.
 	install -Dm644 "$srcdir"/q6voiced.conf \
@@ -74,6 +83,8 @@ sha512sums="
 a7182975b65503b0d12b57499804b21c3c84ecf0aecc5b0aef2e018722ced0afe1f774589339aa059aa8c50a731bfdd793c15e95ca966eab3280d03dcf465b7d  apollo-call-route
 8b899801fab61ccefc62ee125277f211cd320e7cba49132440261cbbbffebda690b25ffb14ad1e927ed58bffb41edb081471265782b756b9647344296aef6e52  apollo-call-route.service
 9416f40ead8b5abf3adf7a5a45281783a50878b2a7527c1d56c19cbac8aa58f6d4246fdede32865abec66cd4063b603e38e4845689bf18db5baad81856cf16f5  apollo-voice-topology.service
+08ae9db08665f5fd69a46221cc6e31275a01cfd288697e46ba2d535361e76f11eb9fc90ae1af62b9ff7365d3ac3c7dfaea89a47865cd57b8c4fbb43912d8bc7e  apollo-camera-variant
+8d51a0b5590f810c9803f06d191b0cbd84cb0f1b08d59a8df29552b7ea16ed09f552e615435fa6e2fcdb278ddcb10ac37a9afb3abfc0dc5aa1963fa0a158c94e  apollo-camera-variant.service
 7f599f086dba97ac39ce98798969bc8e9c26dd3b062bb8f95852182df52814b70d49b701e27b43abeb3639b16ba053e416c14cf75e0bf4a9f2fe7c01fb0ac41c  q6voiced.conf
-860ac8d04b3651366e888ba533fb45db32250705d385e9d3080795c54e63824f3b6c65c09b5f3c502b10033e368420164abd45b70992c94bd2b3cde083612d5c  90-apollo-call-audio.preset
+203bf9b36960bf1bb661b599812961f9e0d77a9b24ea03b5d86a37e9a8f0f6266dca24ffa287e6a430addbfaa6fb3799511ce7a50c26ba167fbdb88b35301e7e  90-apollo-call-audio.preset
 "

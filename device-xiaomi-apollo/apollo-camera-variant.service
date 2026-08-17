@@ -1,0 +1,11 @@
+[Unit]
+Description=Enable the fitted camera module variant
+After=systemd-modules-load.service systemd-udevd.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/apollo-camera-variant
+
+[Install]
+WantedBy=multi-user.target

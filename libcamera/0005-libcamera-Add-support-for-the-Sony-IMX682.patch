@@ -1,0 +1,56 @@
+From: Roy Kaandorp <roykaandorp@gmail.com>
+Date: Sun, 17 Aug 2026 23:30:00 +0200
+Subject: [PATCH] libcamera: add support for the Sony IMX682
+
+The IMX682 is the main rear sensor of the China-market (Sunny-module)
+Xiaomi Mi 10T, reached through the mainline qcom-camss pipeline and
+the software ISP.
+
+Sony's analogue gain code is hyperbolic, gain = 1024 / (1024 - code),
+so without a CameraSensorHelper the soft IPA would treat the raw code
+range as linear gain and park the sensor at maximum gain, as happened
+with the OV13B10. The kernel driver programs the default pedestal of
+64 at 10 bits.
+
+Also add the sensor to the properties database for its 0.8 um unit
+cell.
+
+---
+--- a/src/ipa/libipa/camera_sensor_helper.cpp	2026-08-17 23:22:42.721890759 +0200
++++ b/src/ipa/libipa/camera_sensor_helper.cpp	2026-08-17 23:22:42.763561677 +0200
+@@ -642,6 +642,18 @@
+ };
+ REGISTER_CAMERA_SENSOR_HELPER("imx477", CameraSensorHelperImx477)
+ 
++class CameraSensorHelperImx682 : public CameraSensorHelper
++{
++public:
++	CameraSensorHelperImx682()
++	{
++		/* From the Linux kernel driver: 64 at 10 bits. */
++		blackLevel_ = 4096;
++		gain_ = AnalogueGainLinear{ 0, 1024, -1, 1024 };
++	}
++};
++REGISTER_CAMERA_SENSOR_HELPER("imx682", CameraSensorHelperImx682)
++
+ class CameraSensorHelperImx678 : public CameraSensorHelper
+ {
+ public:
+--- a/src/libcamera/sensor/camera_sensor_properties.cpp	2026-08-17 23:22:42.725890621 +0200
++++ b/src/libcamera/sensor/camera_sensor_properties.cpp	2026-08-17 23:22:42.765085255 +0200
+@@ -291,6 +291,14 @@
+ 				.hblankDelay = 3
+ 			},
+ 		} },
++		{ "imx682", {
++			.unitCellSize = { 800, 800 },
++			.testPatternModes =  {
++				{ controls::draft::TestPatternModeOff, 0 },
++				{ controls::draft::TestPatternModeColorBars, 1 },
++			},
++			.sensorDelays = { },
++		} },
+ 		{ "imx519", {
+ 			.unitCellSize = { 1220, 1220 },
+ 			.testPatternModes = {

@@ -6,7 +6,7 @@ maintainer="royka1 <roykaandorp@gmail.com>"
 _flavor="postmarketos-qcom-sm8250"
 pkgname=linux-$_flavor
 pkgver=7.1.0
-pkgrel=5
+pkgrel=6
 pkgdesc="Mainline kernel fork for SM8250 (with Xiaomi Mi 10T / apollo support)"
 arch="aarch64"
 _carch="arm64"
@@ -40,7 +40,7 @@ makedepends="
 # modem over PCIe/MHI (esoc, sahara, split FBC), NT36675 touchscreen and panel,
 # qpnp-power-on, LCDB regulator and q6voice. The branch is 7.1.0-dev plus those
 # patches, so the other SM8250 devices in this tree still build and boot.
-_tag="apollo-$pkgver-r7"
+_tag="apollo-$pkgver-r8"
 _config="config-$_flavor.$arch"
 source="
 	$pkgname-$_tag.tar.gz::https://gitlab.postmarketos.org/royka1/linux/-/archive/$_tag/linux-$_tag.tar.gz
@@ -90,15 +90,21 @@ package() {
 	# overflows the 221 MiB /boot on this device. Only SM8250 boards can
 	# boot this package and boot-deploy needs just the one named by
 	# deviceinfo_dtb, so drop the rest.
-	find "$pkgdir"/boot/dtbs -type f ! -name 'sm8250-*.dtb' -delete
+	find "$pkgdir"/boot/dtbs -type f ! -name 'sm8250-*.dtb' \
+		! -name 'sm8250-*.dtbo' -delete
 	find "$pkgdir"/boot/dtbs -type d -empty -delete
+
+	# The camera-variant overlay is applied at runtime through the
+	# overlay loader, which fetches it as firmware.
+	install -Dm644 "$pkgdir"/boot/dtbs/qcom/sm8250-xiaomi-apollo-sunny.dtbo \
+		"$pkgdir"/usr/lib/firmware/sm8250-xiaomi-apollo-sunny.dtbo
 
 	install -D "$builddir"/include/config/kernel.release \
 		"$pkgdir"/usr/share/kernel/$_flavor/kernel.release
 }
 
 sha512sums="
-5378f57a3991b404d324597d99087a6bad4b89655568ea4e5cef10012ae7c52c610cb6d2fdef0919b32f89203b3b69754661f78c6844ca0bcefada2fb6e949a4  linux-postmarketos-qcom-sm8250-apollo-7.1.0-r7.tar.gz
-714b30ca7cbafd85dd162b5012d97c672b11d8f285e831aa63e843c3bbb9b1cd31297bfd0444dfae5caee9ba1396c47f935fae1863854fd867c7fb4891e3f990  config-postmarketos-qcom-sm8250.aarch64
+3202a65bed6b5e2f4fa98fb919e03b6b6be165befdfe12891ceb16a1e6bb1cac813a39e519b8d96a9455066c7c504e99e4066a345a16f56befa9b6ede44583b7  linux-postmarketos-qcom-sm8250-apollo-7.1.0-r8.tar.gz
+e7a2078809536eae38919d1ff1aaa64ebb18a80a3e9259714fbef391baf53a13e3c2c5edba4f7bf55bbaf8385bf67bed1b4cb73d9be772b951307dfc97b8ba8c  config-postmarketos-qcom-sm8250.aarch64
 c484de15c12a776735a152efadbf9182bbd6ba3940a6672d38d441627bc07d2ead4b816ef63d5b0aad4ee3de09f1c5dc176a38a7d85aaf6f379884a527680722  firmware-xiaomi-apollo-1.1.tar.gz
 "

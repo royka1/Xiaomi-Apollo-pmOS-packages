@@ -3,7 +3,7 @@ maintainer="Robert Mader <robert.mader@collabora.com>"
 pkgname=libcamera
 _pkgver=0.7.2
 pkgver=9999$_pkgver
-pkgrel=5
+pkgrel=6
 pkgdesc="Linux camera framework"
 url="https://libcamera.org/"
 arch="all"
@@ -58,6 +58,7 @@ _tuning_files="
 	s5k3t2.yaml
 	s5k5e9.yaml
 	s5khmx.yaml
+	imx682.yaml
 	s5kjn1.yaml
 	"
 source="https://gitlab.freedesktop.org/camera/libcamera/-/archive/v$_pkgver/libcamera-v$_pkgver.tar.gz
@@ -65,6 +66,7 @@ source="https://gitlab.freedesktop.org/camera/libcamera/-/archive/v$_pkgver/libc
 	0002-libcamera-simple-Skip-hwISP-formats-if-swISP-is-acti.patch
 	0003-libcamera-Add-support-for-the-OmniVision-OV13B10.patch
 	0004-libcamera-software-ISP-contrast-based-autofocus.patch
+	0005-libcamera-Add-support-for-the-Sony-IMX682.patch
 	qcam.desktop
 	$_tuning_files
 	"
@@ -182,6 +184,7 @@ eef5e38efc874f2049d17f08b04d9f21c3e4616f66873358cd2c446e651f78d6952ae25ee13a6ef9
 191dfa09cfd08bcdf0d0d07410d17af590cf78b8bc8f8b7587fd2dc1c645a9ca07f2926b5d98381c011319b1f4e1d6195dd0d6dba65fd8c723882e6be0d6117d  0002-libcamera-simple-Skip-hwISP-formats-if-swISP-is-acti.patch
 d22d37c12c36d84642a827ef256760cb6b89f285645bfdc85c08d43ae04a67e9524e210979d2e71be048e96e3cad12d874d50445522a1c93ff9bd9b180e408c0  0003-libcamera-Add-support-for-the-OmniVision-OV13B10.patch
 2935f6f54dcf64c43dbb6088dfb386f7661f2f57fa13d22f21d3fcb066c2635b3c868dbac1c3206476011480bae5ae85cab195c4f431edfbfb5a84038dbcf85c  0004-libcamera-software-ISP-contrast-based-autofocus.patch
+97f5ae59a9bc3e95cac353021d972543b585cf7823d0c3156627d275d74627d8116e4b4388c78abb7421710650d8656ddf48255352391174ef63cf2b04334459  0005-libcamera-Add-support-for-the-Sony-IMX682.patch
 22167a4eceb6d1b40b0b7c45fdf116c71684f5340de7f767535cb8e160ad9d2ae0f00cb3d461f73a344520a48a4641cf46226841d78bee06bfbfd2a91337f754  qcam.desktop
 2ee566653b17d565d2c0de67cbe6ebad25df5aac6051cad78e6bae52016fa2ca0247e964d735ac776b3e0bd447ead9c4fcb26cd7629228cdba3ceb91b46f378f  hi846.yaml
 55dab9dcb9b1982143b9d63e4e51138c5bffd7c8f4a8e4e122750b3ad9d475446956bc297d9f564819ade4be75a575d06633a064e14f8ba3ef77986783c5f067  imx355.yaml
@@ -195,5 +198,6 @@ d3d940c1ec36990a2a25f7ea4ae5d86da7254a7c4238c90ad1b5662104dc15a7699561cc54504a32
 831dc86cd44710b1baad2fb403b4be251a03d685d184d19393fa391d710f9d98dcf0cd35dbbddf07cf87d746440a517f4f576c691ff4ebf2e6e00130cbab43c3  s5k3t2.yaml
 d3d940c1ec36990a2a25f7ea4ae5d86da7254a7c4238c90ad1b5662104dc15a7699561cc54504a32984ed9a06d031ca875c5a2364e5fc7146c1fa4349fc18889  s5k5e9.yaml
 5a4159c9fb5499898fe9a11aa8fe12304b907392c92c894997843cc417a13c137b6aac2cf90be00e3b13ec01b5d8a40b352b15f682799639ad907ddb611c7d03  s5khmx.yaml
+27794b912079739124dce46f412be67b41b01b51f05fa656b5feab083c6034526168893e0f01b233f6fb83a183418d372cd0d98490a8edbf03e3db48bcc7abf8  imx682.yaml
 d59020e62520ee622282c85ce7bcdfe453c99becf48cc1005c5f8a4bb8b2511b19c89f38fb3c994e7c6a79d1f84e2ed5f5a09b4c5bdc1dc4a44b071dbccf0d44  s5kjn1.yaml
 "
