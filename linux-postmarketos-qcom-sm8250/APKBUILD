@@ -1,0 +1,104 @@
+# Reference: <https://postmarketos.org/vendorkernel>
+# Kernel config based on: arch/arm64/configs/defconfig
+# Co-Maintainer: bluebunny <bluebunny@postmarketos.org>
+maintainer="royka1 <roykaandorp@gmail.com>"
+# Co-Maintainer: Jianhua Lu <lujianhua000@gmail.com>
+_flavor="postmarketos-qcom-sm8250"
+pkgname=linux-$_flavor
+pkgver=7.1.0
+pkgrel=4
+pkgdesc="Mainline kernel fork for SM8250 (with Xiaomi Mi 10T / apollo support)"
+arch="aarch64"
+_carch="arm64"
+url="https://gitlab.postmarketos.org/royka1/linux"
+license="GPL-2.0-only"
+options="!strip !check !tracedeps
+	pmb:cross-native
+	pmb:kconfigcheck-nftables
+	pmb:kconfigcheck-community
+"
+makedepends="
+	bash
+	bison
+	clang
+	elfutils-dev
+	findutils
+	flex
+	linux-headers
+	lld
+	llvm
+	openssl-dev
+	pahole
+	perl
+	postmarketos-installkernel
+	python3
+"
+
+# Source
+#
+# This is the sm8250 tree plus the Xiaomi Mi 10T (apollo) port: external SDX55
+# modem over PCIe/MHI (esoc, sahara, split FBC), NT36675 touchscreen and panel,
+# qpnp-power-on, LCDB regulator and q6voice. The branch is 7.1.0-dev plus those
+# patches, so the other SM8250 devices in this tree still build and boot.
+_tag="apollo-$pkgver-r6"
+_config="config-$_flavor.$arch"
+source="
+	$pkgname-$_tag.tar.gz::https://gitlab.postmarketos.org/royka1/linux/-/archive/$_tag/linux-$_tag.tar.gz
+	$_config
+	firmware-xiaomi-apollo-1.1.tar.gz
+"
+builddir="$srcdir/linux-$_tag"
+
+prepare() {
+	default_prepare
+	cp "$srcdir/config-$_flavor.$arch" .config
+
+	# Stage the blobs named by CONFIG_EXTRA_FIRMWARE into the tree, read
+	# straight out of the config so the two can never drift apart.
+	#
+	# They come from the firmware tarball unpacked next to us, not from a
+	# firmware-xiaomi-apollo installed in the build root. This is a
+	# pmb:cross-native package, so that build root is the native chroot,
+	# and pmbootstrap installs build dependencies without building them --
+	# a device-arch aport can never be satisfied there. Carrying the
+	# tarball keeps the kernel buildable on its own.
+	local fw
+	for fw in $(sed -n 's/^CONFIG_EXTRA_FIRMWARE="\(.*\)"$/\1/p' .config); do
+		install -Dm644 "$srcdir/$fw" "firmware/$fw"
+	done
+}
+
+build() {
+	unset LDFLAGS
+	make ARCH="$_carch" LLVM=1 \
+		KBUILD_BUILD_VERSION="$((pkgrel + 1 ))-$_flavor"
+}
+
+package() {
+	mkdir -p "$pkgdir"/boot
+
+	make zinstall modules_install dtbs_install \
+		ARCH="$_carch" \
+		LLVM=1 \
+		INSTALL_PATH="$pkgdir"/boot/ \
+		INSTALL_MOD_PATH="$pkgdir"/usr \
+		INSTALL_MOD_STRIP=1 \
+		INSTALL_DTBS_PATH="$pkgdir/boot/dtbs"
+	rm -f "$pkgdir"/usr/lib/modules/*/build "$pkgdir"/usr/lib/modules/*/source
+
+	# dtbs_install ships every arm64 qcom DTB (~400 files, ~43 MiB), which
+	# overflows the 221 MiB /boot on this device. Only SM8250 boards can
+	# boot this package and boot-deploy needs just the one named by
+	# deviceinfo_dtb, so drop the rest.
+	find "$pkgdir"/boot/dtbs -type f ! -name 'sm8250-*.dtb' -delete
+	find "$pkgdir"/boot/dtbs -type d -empty -delete
+
+	install -D "$builddir"/include/config/kernel.release \
+		"$pkgdir"/usr/share/kernel/$_flavor/kernel.release
+}
+
+sha512sums="
+548942ede2ce0088f5db7a05c7e629f8562642ae2261a05faeee28d73fac23f35506e40919880ba0613093d5432773b038a23a8278c3f69092d37acca127d7e2  linux-postmarketos-qcom-sm8250-apollo-7.1.0-r6.tar.gz
+714b30ca7cbafd85dd162b5012d97c672b11d8f285e831aa63e843c3bbb9b1cd31297bfd0444dfae5caee9ba1396c47f935fae1863854fd867c7fb4891e3f990  config-postmarketos-qcom-sm8250.aarch64
+c484de15c12a776735a152efadbf9182bbd6ba3940a6672d38d441627bc07d2ead4b816ef63d5b0aad4ee3de09f1c5dc176a38a7d85aaf6f379884a527680722  firmware-xiaomi-apollo-1.1.tar.gz
+"

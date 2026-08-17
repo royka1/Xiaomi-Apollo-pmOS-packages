@@ -1,0 +1,56 @@
+From: Roy Kaandorp <roykaandorp@gmail.com>
+Date: Sun, 17 Aug 2026 00:00:00 +0200
+Subject: [PATCH] libcamera: add support for the OmniVision OV13B10
+
+The OV13B10 is the ultra-wide rear sensor on the Xiaomi Mi 10T (apollo),
+reached through the mainline qcom-camss pipeline and the software ISP.
+
+Without a CameraSensorHelper the soft IPA has no way to convert between
+the sensor's analogue gain codes and real gain, so its AGC treats the
+raw code range (128..1984) as if those were gain multipliers and parks
+the sensor at maximum gain, which makes every frame extremely noisy.
+The sensor uses the usual OmniVision linear mapping of 128 code units
+per 1x, and a black level of 0x40 at 10 bits.
+
+Also add the sensor to the properties database so its 1.12 um unit cell
+size and test pattern modes are known rather than defaulted.
+
+---
+--- a/src/ipa/libipa/camera_sensor_helper.cpp	2026-07-10 12:12:38.000000000 +0200
++++ b/src/ipa/libipa/camera_sensor_helper.cpp	2026-08-17 00:04:26.350102863 +0200
+@@ -827,6 +827,18 @@
+ };
+ REGISTER_CAMERA_SENSOR_HELPER("ov13858", CameraSensorHelperOv13858)
+ 
++class CameraSensorHelperOv13b10 : public CameraSensorHelper
++{
++public:
++	CameraSensorHelperOv13b10()
++	{
++		/* From the Linux kernel driver: 0x40 at 10 bits. */
++		blackLevel_ = 4096;
++		gain_ = AnalogueGainLinear{ 1, 0, 0, 128 };
++	}
++};
++REGISTER_CAMERA_SENSOR_HELPER("ov13b10", CameraSensorHelperOv13b10)
++
+ class CameraSensorHelperVd55g1 : public CameraSensorHelper
+ {
+ public:
+--- a/src/libcamera/sensor/camera_sensor_properties.cpp	2026-07-10 12:12:38.000000000 +0200
++++ b/src/libcamera/sensor/camera_sensor_properties.cpp	2026-08-17 00:04:26.351091429 +0200
+@@ -503,6 +503,14 @@
+ 			},
+ 			.sensorDelays = { },
+ 		} },
++		{ "ov13b10", {
++			.unitCellSize = { 1120, 1120 },
++			.testPatternModes =  {
++				{ controls::draft::TestPatternModeOff, 0 },
++				{ controls::draft::TestPatternModeColorBars, 1 },
++			},
++			.sensorDelays = { },
++		} },
+ 		{ "vd55g1", {
+ 			.unitCellSize = { 2160, 2160 },
+ 			.testPatternModes = {

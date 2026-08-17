@@ -129,11 +129,20 @@ repository build. Drop that aport once the patches land upstream.
 ## Status
 
 Working on the `apollo-7.1` kernel: display and touchscreen, sound, WiFi and
-Bluetooth, all four remoteprocs (modem/ADSP/CDSP/SLPI), and cellular —
-registered on LTE/5G with CS+PS attached.
+Bluetooth, all four remoteprocs (modem/ADSP/CDSP/SLPI), cellular —
+registered on LTE/5G with CS+PS attached — voice calls both ways, NFC tag
+detection, and all four cameras. The 108 Mpixel wide camera needed C-PHY
+support written for the camss driver (kernel tag `apollo-7.1.0-r6`); the
+`libcamera` aport adds contrast-detection autofocus to the software ISP
+(continuous by default, manual and one-shot selectable through the standard
+AfMode/LensPosition/AfTrigger controls) and the vendor color matrices, so
+photos focus and render correctly out of the box. The macro camera's focus
+motor accepts commands but does not move — an open hardware puzzle — and the
+`linux-postmarketos-qcom-sm8250` directory here mirrors the kernel aport
+from the pmaports fork for reference.
 
-Not verified: camera, GPS (the LOC service does not answer, and its QMI
-timeouts can make ModemManager drop the modem on some boots), fingerprint.
+Not verified: GPS (the LOC service does not answer, and its QMI timeouts can
+make ModemManager drop the modem on some boots), fingerprint.
 
 ## Licensing
 
