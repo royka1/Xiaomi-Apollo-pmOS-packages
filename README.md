@@ -136,10 +136,18 @@ support written for the camss driver (kernel tag `apollo-7.1.0-r6`); the
 `libcamera` aport adds contrast-detection autofocus to the software ISP
 (continuous by default, manual and one-shot selectable through the standard
 AfMode/LensPosition/AfTrigger controls) and the vendor color matrices, so
-photos focus and render correctly out of the box. The macro camera's focus
+photos focus and render correctly out of the box. The camera flash works
+(torch and full-power strobe; the LED sits on the second PM8150L flash
+channel, fixed in `apollo-7.1.0-r7`). The macro camera's focus
 motor accepts commands but does not move — an open hardware puzzle — and the
 `linux-postmarketos-qcom-sm8250` directory here mirrors the kernel aport
 from the pmaports fork for reference.
+
+As of `apollo-7.1.0-r8` the non-Pro Mi 10T's Sunny main-camera module
+(64 Mpixel IMX682, DW9800 focus motor) is described too: the
+`apollo-camera-variant` service reads the module EEPROM at boot and
+switches the device tree to the fitted variant with a runtime overlay.
+This path is untested on real Sunny hardware — reports welcome.
 
 Not verified: GPS (the LOC service does not answer, and its QMI timeouts can
 make ModemManager drop the modem on some boots), fingerprint.
