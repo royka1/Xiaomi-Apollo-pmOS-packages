@@ -56,6 +56,22 @@ apollo-pin-packages status    # show pins
 apollo-pin-packages unpin     # before installing a newer local build
 ```
 
+## Getting fixes on an already-flashed device
+
+Binary builds of fixed packages are attached to
+[releases](https://github.com/royka1/Xiaomi-Apollo-pmOS-packages/releases) —
+download on the phone, `sudo apk add --allow-untrusted ./<pkg>.apk`, and pin
+(`sudo apk add '<name>=<version>'`) so `apk upgrade` keeps it.
+
+If you build with pmbootstrap anyway, the same is one command per package
+from the pmaports fork, over SSH to the running phone:
+
+```sh
+pmbootstrap pull                # or: git -C ~/.local/var/pmbootstrap/cache_git/pmaports pull
+pmbootstrap build phoc
+pmbootstrap sideload --host <phone-ip> --user <you> phoc
+```
+
 ## Building an image
 
 pmbootstrap manages its own pmaports checkout, so the way to use this port is to
