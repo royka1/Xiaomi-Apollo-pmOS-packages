@@ -11,13 +11,21 @@
 # end open for the call's duration. Both directions are watched: it opens the
 # playback and the capture side, and either one being up means a call.
 #
-# Only transitions are acted on, so picking the speakerphone during a call
-# stays picked until the call ends.
+# The mute is re-asserted for as long as the call lasts, not just on the
+# transition: any system sound played mid-call (a notification, a UI click)
+# makes PipeWire re-run the Speaker device's UCM enable sequence, which turns
+# the switch back on and would leak the call out of the loudspeaker.
+# Speakerphone mode is deliberately not offered while echo cancellation does
+# not work.
 
 CARD=X10T
 CTL="Speaker Playback Switch"
 P=/proc/asound/card0/pcm3p/sub0/status
 C=/proc/asound/card0/pcm3c/sub0/status
+
+speaker_is_on() {
+	amixer -c "$CARD" cget name="$CTL" 2>/dev/null | grep -q ": values=on"
+}
 
 prev=
 while :; do
@@ -31,13 +39,21 @@ while :; do
 	fi
 
 	if [ "$now" != "$prev" ]; then
+		echo "call-route: ${prev:-start} -> $now"
+		prev=$now
 		case $now in
 		call)	amixer -q -c "$CARD" cset name="$CTL" 0 ;;
 		idle)	amixer -q -c "$CARD" cset name="$CTL" 1 ;;
 		esac
-		echo "call-route: $prev -> $now (playback='$sp' capture='$sc')"
-		prev=$now
+	elif [ "$now" = call ] && speaker_is_on; then
+		# PipeWire re-enabled the loudspeaker mid-call; mute it again.
+		echo "call-route: re-muting the loudspeaker"
+		amixer -q -c "$CARD" cset name="$CTL" 0
 	fi
 
-	sleep 1
+	if [ "$now" = call ]; then
+		sleep 0.5
+	else
+		sleep 1
+	fi
 done
