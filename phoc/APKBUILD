@@ -1,0 +1,106 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Contributor: Danct12 <danct12@disroot.org>
+# Contributor: Clayton Craft <clayton@craftyguy.net>
+# Contributor: Rasmus Thomsen <oss@cogitri.dev>
+maintainer="team/phosh <newbie13xd@gmail.com>"
+pkgname=phoc
+pkgver=0.56.0
+pkgrel=1
+pkgdesc="wlroots based Phone compositor for the Phosh shell"
+arch="all"
+url="https://gitlab.gnome.org/World/Phosh/phoc"
+license="GPL-3.0-only"
+depends="
+	$pkgname-schemas
+	dbus
+	gsettings-desktop-schemas
+	mutter-schemas
+	"
+_wlrootsmakedepends="
+	eudev-dev
+	glslang
+	hwdata-dev
+	libcap-dev
+	libdisplay-info-dev
+	libseat-dev
+	libxcb-dev
+	xcb-util-image-dev
+	xcb-util-renderutil-dev
+	xcb-util-wm-dev
+	xkeyboard-config-dev
+	xwayland-dev
+	"
+makedepends="
+	glib-dev
+	gmobile-dev
+	gnome-desktop-dev
+	json-glib-dev
+	libdrm-dev
+	libinput-dev
+	libxkbcommon-dev
+	mesa-dev
+	meson
+	pixman-dev
+	py3-docutils
+	wayland-dev
+	wayland-protocols
+	$_wlrootsmakedepends
+	"
+checkdepends="xvfb-run"
+subpackages="
+	$pkgname-dbg
+	$pkgname-doc
+	$pkgname-lang
+	$pkgname-schemas::noarch
+	"
+options="!check" # Needs fullblown EGL
+source="https://sources.phosh.mobi/releases/phoc/phoc-${pkgver/_/.}.tar.xz
+	0001-output-honor-non-preferred-modes-from-output-managem.patch
+	"
+replaces="wlroots-phosh"
+builddir="$srcdir/$pkgname-${pkgver/_/.}"
+
+prepare() {
+	default_prepare
+
+	patch -Np1 < subprojects/packagefiles/wlroots/0001-Revert-layer-shell-error-on-0-dimension-without-anch.patch \
+		-d subprojects/wlroots-0.20.x
+}
+
+build() {
+	abuild-meson \
+		-Db_lto=true \
+		-Dembed-wlroots=enabled \
+		-Dman=true \
+		-Dtests="$(want_check && echo true || echo false)" \
+		--default-library=static \
+		. output
+	meson compile -C output
+}
+
+check() {
+	xvfb-run -a meson test --print-errorlogs -C output
+}
+
+package() {
+	DESTDIR="$pkgdir/" meson install --no-rebuild -C output
+	install -Dm755 tools/scale-to-fit \
+		-t "$pkgdir"/usr/bin
+
+	# remove unneeded wlroots dev. files
+	rm -r "$pkgdir"/usr/include
+	rm -r "$pkgdir"/usr/lib/libwlroots-*.a
+	rm -r "$pkgdir"/usr/lib/pkgconfig
+}
+
+schemas() {
+	pkgdesc="$pkgdesc (schemas)"
+	depends=
+
+	amove usr/share/glib-2.0/schemas
+}
+
+sha512sums="
+f2a22e04fc00dfde56c83750ff531b6debcf2af81b913f8d85f8b23e1dc1fd71ec3786d2f2e963ed3e3b1b4b8703ed9844452d20619fac729de5482be77b7a7b  phoc-0.56.0.tar.xz
+e713b8e93a9b31131c8886deb6c70e7c505b64f43a56805d53c5bb0f2c79c58e33e1330f00548d356e66755887af137068eb0b329294c9b7fb0af4182ffc4de2  0001-output-honor-non-preferred-modes-from-output-managem.patch
+"

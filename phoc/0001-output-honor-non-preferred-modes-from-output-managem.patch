@@ -1,0 +1,29 @@
+From: Roy Kaandorp <roykaandorp@gmail.com>
+Date: Tue, 18 Aug 2026 21:00:00 +0200
+Subject: [PATCH] output: honor non-preferred modes from output-management
+
+phoc_output_config_head_to_output_config() only copied the head's mode
+into the output config when that mode was the panel's preferred one.
+For any other mode from the list it read the (zeroed) custom_mode
+instead, so the config ended up with a 0x0 mode and
+phoc_output_fill_state() quietly fell back to the preferred mode.
+
+In practice this makes refresh-rate switching impossible on phone
+panels that expose several rates: picking anything but the default in
+Settings (or with wlr-randr) applies successfully but the preferred
+mode is set again, so the choice appears to revert.
+
+Use the head's mode whenever one is set, and only fall back to the
+custom mode when the client actually configured one.
+---
+--- a/src/output.c
++++ b/src/output.c
+@@ -1943,7 +1943,7 @@ phoc_output_config_head_to_output_config (PhocOutput
+   PhocOutputConfig *oc = phoc_output_config_new (phoc_output_get_identifier (self));
+ 
+   oc->enable = TRUE;
+-  if (head->state.mode && head->state.mode->preferred) {
++  if (head->state.mode) {
+     oc->mode.width = head->state.mode->width;
+     oc->mode.height = head->state.mode->height;
+     oc->mode.refresh_rate = head->state.mode->refresh / 1000.0;

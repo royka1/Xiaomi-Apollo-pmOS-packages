@@ -17,6 +17,10 @@
 #       keeps registration and SMS working, so the breakage is easy to
 #       misread.
 #
+#   phoc
+#       Carries the output-management fix that makes refresh-rate switching
+#       work; without it every rate change silently reverts to 144 Hz.
+#
 # Pinning writes an exact-version constraint into /etc/apk/world, which is
 # exactly what `apk add pkg=version` does.
 #
@@ -27,7 +31,7 @@
 #     apollo-pin-packages
 set -eu
 
-PKGS="linux-postmarketos-qcom-sm8250 modemmanager"
+PKGS="linux-postmarketos-qcom-sm8250 modemmanager phoc"
 
 # apk 3 dropped the version from `apk info -v` -- it prints the description and
 # a pile of mirror warnings instead, so the old parse returned nothing and this
