@@ -17,7 +17,8 @@ OVERLAY=sm8250-xiaomi-apollo-sunny.dtbo
 modprobe at24 2>/dev/null
 
 find_eeprom() {
-	for ee in /sys/bus/i2c/devices/*-0050/eeprom; do
+	# Semco's EEPROM answers at 0x50, Sunny's at 0x51.
+	for ee in /sys/bus/i2c/devices/*-0050/eeprom /sys/bus/i2c/devices/*-0051/eeprom; do
 		[ -r "$ee" ] || continue
 		case "$(readlink "${ee%/eeprom}"/of_node 2>/dev/null)" in
 		*cci@ac4f000*) echo "$ee"; return 0 ;;
