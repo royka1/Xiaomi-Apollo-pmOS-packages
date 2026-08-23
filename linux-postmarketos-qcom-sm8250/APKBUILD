@@ -6,7 +6,7 @@ maintainer="royka1 <roykaandorp@gmail.com>"
 _flavor="postmarketos-qcom-sm8250"
 pkgname=linux-$_flavor
 pkgver=7.1.0
-pkgrel=6
+pkgrel=7
 pkgdesc="Mainline kernel fork for SM8250 (with Xiaomi Mi 10T / apollo support)"
 arch="aarch64"
 _carch="arm64"
@@ -40,7 +40,7 @@ makedepends="
 # modem over PCIe/MHI (esoc, sahara, split FBC), NT36675 touchscreen and panel,
 # qpnp-power-on, LCDB regulator and q6voice. The branch is 7.1.0-dev plus those
 # patches, so the other SM8250 devices in this tree still build and boot.
-_tag="apollo-$pkgver-r8"
+_tag="apollo-$pkgver-r9"
 _config="config-$_flavor.$arch"
 source="
 	$pkgname-$_tag.tar.gz::https://gitlab.postmarketos.org/royka1/linux/-/archive/$_tag/linux-$_tag.tar.gz
@@ -104,7 +104,7 @@ package() {
 }
 
 sha512sums="
-3202a65bed6b5e2f4fa98fb919e03b6b6be165befdfe12891ceb16a1e6bb1cac813a39e519b8d96a9455066c7c504e99e4066a345a16f56befa9b6ede44583b7  linux-postmarketos-qcom-sm8250-apollo-7.1.0-r8.tar.gz
+13833e238224757ebb085612fe81e61aa3344c78dcd0c3700a6b0fb49aed2f642030d8b17b9919e7b48c1697531f12146dbc708181a20ffb90250882f78df9e2  linux-postmarketos-qcom-sm8250-apollo-7.1.0-r9.tar.gz
 e7a2078809536eae38919d1ff1aaa64ebb18a80a3e9259714fbef391baf53a13e3c2c5edba4f7bf55bbaf8385bf67bed1b4cb73d9be772b951307dfc97b8ba8c  config-postmarketos-qcom-sm8250.aarch64
 c484de15c12a776735a152efadbf9182bbd6ba3940a6672d38d441627bc07d2ead4b816ef63d5b0aad4ee3de09f1c5dc176a38a7d85aaf6f379884a527680722  firmware-xiaomi-apollo-1.1.tar.gz
 "
