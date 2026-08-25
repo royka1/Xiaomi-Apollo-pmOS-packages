@@ -1,0 +1,31 @@
+#!/bin/sh
+# Suspend/resume glue for what does not survive s2idle by itself.
+#
+# pre:  close the FastRPC sensor session and let the DSP side retire it;
+#       a live session makes the SLPI fault sensor_process at resume and
+#       the DSP restart takes every sensor down.
+# post: bring the sensor daemons back in dependency order.
+SDSP_UNIT=""
+for u in hexagonrpcd-sdsp.service hexagonrpcd-apollo-sdsp.service; do
+	systemctl cat "$u" >/dev/null 2>&1 && { SDSP_UNIT=$u; break; }
+done
+case "$1" in
+pre)
+	systemctl stop iio-sensor-proxy.service 2>/dev/null
+	[ -n "$SDSP_UNIT" ] && systemctl stop "$SDSP_UNIT" 2>/dev/null
+	for i in 1 2 3 4 5; do
+		[ "$(lsof /dev/fastrpc-sdsp 2>/dev/null | wc -l)" = 0 ] && break
+		sleep 1
+	done
+	sleep 2
+	;;
+post)
+	(
+		sleep 1
+		[ -n "$SDSP_UNIT" ] && systemctl start "$SDSP_UNIT" 2>/dev/null
+		sleep 2
+		systemctl start iio-sensor-proxy.service 2>/dev/null
+	) >/dev/null 2>&1 &
+	;;
+esac
+exit 0
