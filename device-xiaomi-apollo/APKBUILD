@@ -2,7 +2,7 @@
 maintainer="royka1 <roykaandorp@gmail.com>"
 pkgname=device-xiaomi-apollo
 pkgdesc="Xiaomi Mi 10T / 10T Pro"
-pkgver=9
+pkgver=10
 pkgrel=0
 url="https://postmarketos.org"
 license="MIT"
