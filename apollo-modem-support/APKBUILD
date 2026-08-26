@@ -1,7 +1,7 @@
 # Maintainer: royka1 <roykaandorp@gmail.com>
 pkgname=apollo-modem-support
 pkgver=1.0
-pkgrel=12
+pkgrel=13
 pkgdesc="Glue needed to make the external SDX55 modem work on the Xiaomi Mi 10T (apollo)"
 url="https://github.com/royka1/Xiaomi-Apollo-pmOS-packages"
 arch="noarch"
@@ -17,7 +17,6 @@ source="
 	10-apollo-modem-ordering.conf
 	zz-apollo-multiplex.conf
 	rmnet.conf
-	10-apollo-no-suspend.conf
 	10-apollo-ntp-by-ip.conf
 	90-apollo-timesyncd
 	apollo-uim-provision
@@ -53,8 +52,6 @@ package() {
 	install -Dm644 "$srcdir"/rmnet.conf \
 		"$pkgdir"/usr/lib/modules-load.d/rmnet.conf
 
-	install -Dm644 "$srcdir"/10-apollo-no-suspend.conf \
-		"$pkgdir"/usr/lib/systemd/sleep.conf.d/10-apollo-no-suspend.conf
 	install -Dm644 "$srcdir"/10-apollo-ntp-by-ip.conf \
 		"$pkgdir"/usr/lib/systemd/timesyncd.conf.d/10-apollo-ntp-by-ip.conf
 	install -Dm755 "$srcdir"/90-apollo-timesyncd \
@@ -104,7 +101,6 @@ dafc58f2b420758f5997f5fb627adb0c2a6154ae211af39f2a4e331b5a10c10e99fa42e1789c1103
 c78a2a4bf6660a7ff49a8149e721e0195bda6cd400d20005466d9e918212590c700ec9c20a0edf4da637ed34fc2e32a64b8302798c19c9f2252d92c5ca803afd  10-apollo-modem-ordering.conf
 3b2d84e9442c6384730c95832ef4c90cd94ca6a6ebe51c8d938bb457908aa783306d052f46320e0c8f75304113e7fea168636e41fa4388668ed252d03c3fbc4d  zz-apollo-multiplex.conf
 d77770f39d6fb8d5b413bce1b9dcbaed46c2969789714fb557dbbe7be3de2328ef75cf595d3965b5b49cb97c37ded7fecc7b2e0df8b37cdda99aa5b2fcbee441  rmnet.conf
-97f65b7e8bd1a1a509b7694710ada9120188f270ba4c22a50147697857fa06fb8f82bc0a3c18a434b72257028e0a075998f4cfbc3d1acefc6c814561b824fe16  10-apollo-no-suspend.conf
 e8280ccd1712a26dbb0dc422af48807069d6c6981650d82725ca50344fe450db0a7447e516cffab0aa42bb514c5703170695609ee548b2c6e1f33352e2947947  10-apollo-ntp-by-ip.conf
 58f51b1ec3cfb108cf69620820c24c868ecea4f81e3cfada8b731969728f9e1e81c684cda8982e27db30a24edfae2352a44a654d5d2b531f6d5ce7b55543539b  90-apollo-timesyncd
 a22d31eacccf8241a61429a70c44fb42bd864cb7c8bbfa420948b472e6ad2a098478c9ad108e566c0d627c3d5018a68f0402635e4645b3344b9645b2a6d2deed  apollo-uim-provision
