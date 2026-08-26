@@ -9,7 +9,7 @@ Before=shutdown.target reboot.target halt.target kexec.target poweroff.target
 [Service]
 Type=simple
 ExecStart=/usr/bin/pm_service_native -V
-Restart=on-failure
+Restart=always
 RestartSec=1
 TimeoutStopSec=5
 KillMode=mixed

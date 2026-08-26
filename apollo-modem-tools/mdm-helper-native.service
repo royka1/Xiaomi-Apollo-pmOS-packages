@@ -10,7 +10,7 @@ Before=shutdown.target reboot.target halt.target kexec.target poweroff.target
 [Service]
 Type=simple
 ExecStart=/usr/bin/mdm_helper_native --startup-timeout-ms 0 --boot-done --poll-ms 1000
-Restart=on-failure
+Restart=always
 RestartSec=1
 TimeoutStopSec=5
 KillMode=mixed

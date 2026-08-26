@@ -1,7 +1,7 @@
 # Maintainer: royka1 <roykaandorp@gmail.com>
 pkgname=apollo-modem-tools
 pkgver=1.0
-pkgrel=17
+pkgrel=18
 pkgdesc="Userspace services the SDX55 expects on the AP (Xiaomi Mi 10T / apollo)"
 url="https://github.com/royka1/Xiaomi-Apollo-pmOS-packages"
 arch="aarch64"
