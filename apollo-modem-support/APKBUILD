@@ -1,7 +1,7 @@
 # Maintainer: royka1 <roykaandorp@gmail.com>
 pkgname=apollo-modem-support
 pkgver=1.0
-pkgrel=13
+pkgrel=14
 pkgdesc="Glue needed to make the external SDX55 modem work on the Xiaomi Mi 10T (apollo)"
 url="https://github.com/royka1/Xiaomi-Apollo-pmOS-packages"
 arch="noarch"
